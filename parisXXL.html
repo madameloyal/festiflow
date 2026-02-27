@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Festiflow — Paris XXL 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root {
+    --bg: #08080d; --surface: #101017; --surface-2: #16161f;
+    --border: rgba(255,255,255,0.05); --border-hover: rgba(255,255,255,0.08);
+    --text: #f0f0f5; --text-muted: #a0a0b0; --text-dim: #5a5a6a;
+    --green: #34d399; --red: #f87171; --amber: #fbbf24;
+    /* Day color palette — assigned dynamically based on event day names */
+    --day-0: #a855f7; --day-1: #6366f1; --day-2: #f472b6; --day-3: #4f46e5;
+    --dice-blue: #5b8def; --sg-green: #34d399;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; font-size: 19px; line-height: 1.55; }
+.dashboard { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* ═══ HEADER ═══ */
+.header { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+.header-accent { height: 3px; background: linear-gradient(90deg, var(--day-0), var(--day-1)); }
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 28px 0; gap: 16px; }
+.header-title { font-family: 'Space Grotesk', 'DM Sans', sans-serif; font-size: 1.7em; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1.1; }
+.header-brand { font-size: 0.82em; color: var(--text-muted); font-weight: 400; margin-top: 6px; letter-spacing: 0.2px; }
+.header-brand strong { color: #fff; font-weight: 500; }
+.header-badges { display: flex; gap: 6px; flex-shrink: 0; padding-top: 4px; }
+.badge { font-size: 0.68em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; border-radius: 5px; white-space: nowrap; }
+.badge-live { background: rgba(52,211,153,0.12); color: var(--green); display: flex; align-items: center; gap: 6px; }
+.badge-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+.badge-edition { background: rgba(255,255,255,0.06); color: var(--text); }
+.header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 18px 28px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.h-stat { padding: 14px 0; border-right: 1px solid var(--border); padding-right: 14px; }
+.h-stat:last-child { border-right: none; padding-right: 0; }
+.h-stat:not(:first-child) { padding-left: 14px; }
+.h-stat-label { font-size: 0.65em; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+.h-stat-value { font-size: 0.88em; color: #fff; font-weight: 500; }
+.h-stat-value .dim { color: var(--text-muted); font-weight: 400; }
+.header-compare { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 14px 28px; background: rgba(255,255,255,0.015); }
+.header-first-edition { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 28px; background: rgba(255,255,255,0.015); }
+.header-first-edition-text { font-size: 0.78em; color: var(--text-muted); }
+.compare-label { font-size: 0.68em; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 600; flex-shrink: 0; }
+.compare-details { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.compare-name { font-size: 0.85em; font-weight: 600; color: #fff; }
+.compare-meta { font-size: 0.78em; color: var(--text); }
+.compare-sep { color: rgba(255,255,255,0.15); font-size: 0.75em; }
+.compare-cap-delta { font-size: 0.7em; font-weight: 600; padding: 3px 10px; border-radius: 5px; background: rgba(52,211,153,0.1); color: var(--green); }
+.app-mark { font-family: 'Space Grotesk', 'DM Sans', sans-serif; font-size: 0.65em; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.5; }
+
+/* ═══ INFO TOOLTIP ═══ */
+.info-tip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.06); color: var(--text-muted); font-size: 0.55em; font-weight: 600; font-style: italic; font-family: Georgia, serif; cursor: help; margin-left: 6px; vertical-align: middle; flex-shrink: 0; letter-spacing: 0; text-transform: none; transition: background 0.2s, color 0.2s; }
+.info-tip:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+.info-tip .info-bubble { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1e1e2a; color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 14px; font-size: 1.6em; font-style: normal; font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0; line-height: 1.45; width: 280px; white-space: normal; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.info-tip .info-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #1e1e2a; }
+.info-tip:hover .info-bubble { opacity: 1; visibility: visible; pointer-events: auto; }
+@media (max-width:600px) { .info-tip .info-bubble { width: 220px; font-size: 1.4em; left: auto; right: -10px; transform: none; } .info-tip .info-bubble::after { left: auto; right: 16px; } }
+.header-ts { font-size: 0.6em; color: var(--text-muted); padding: 8px 28px 12px; text-align: right; opacity: 0.6; }
+
+/* ═══ GRID ═══ */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+.section-gap { margin-bottom: 14px; }
+
+/* ═══ CARD ═══ */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: border-color 0.2s; }
+.card:hover { border-color: var(--border-hover); }
+.card-label { font-size: 0.75em; font-weight: 500; text-transform: uppercase; letter-spacing: 1.8px; color: #fff; margin-bottom: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+/* ═══ SHARED ═══ */
+.hero { font-size: 2em; font-weight: 700; color: #fff; line-height: 1.1; letter-spacing: -0.5px; }
+.hero-lg { font-size: 2.6em; letter-spacing: -1px; }
+.hero-unit { font-size: 0.32em; font-weight: 400; color: var(--text-dim); letter-spacing: 0; margin-left: 2px; }
+.yoy-tag { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 6px; font-size: 0.72em; font-weight: 600; }
+.yoy-tag.positive { background: rgba(52,211,153,0.1); color: var(--green); }
+.yoy-tag.negative { background: rgba(248,113,113,0.1); color: var(--red); }
+.yoy-tag.neutral { background: rgba(255,255,255,0.04); color: var(--text-dim); }
+.yoy-badge { font-size: 0.72em; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
+.yoy-badge.positive { color: var(--green); background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.15); }
+.week-badge { font-size: 0.72em; font-weight: 600; color: var(--amber); background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.15); padding: 3px 10px; border-radius: 6px; letter-spacing: 0.5px; }
+.meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; }
+.meta-key { color: var(--text); }
+.meta-val { color: #fff; font-weight: 500; }
+.change-tag { font-size: 0.85em; font-weight: 600; margin-left: 4px; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+.main-row { display: flex; align-items: center; gap: 22px; margin-bottom: 20px; }
+
+/* ═══ RING ═══ */
+.ring { position: relative; width: 100px; height: 120px; flex-shrink: 0; }
+.ring svg { transform: rotate(-90deg); width: 100px; height: 100px; }
+.ring-track { fill: none; stroke: var(--surface-2); stroke-width: 7; }
+.ring-fill { fill: none; stroke-width: 7; stroke-linecap: round; }
+.ring-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.ring-pct { font-size: 1.15em; font-weight: 700; color: #fff; line-height: 1; }
+.ring-sub { font-size: 0.58em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+/* ═══ DETAILS ═══ */
+.details-toggle { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.75em; color: var(--text-muted); cursor: pointer; padding: 8px 0 2px; user-select: none; transition: color 0.2s; width: 100%; }
+.details-toggle:hover { color: #fff; }
+.details-toggle .arrow { font-size: 0.7em; transition: transform 0.25s ease; }
+.details-toggle.open .arrow { transform: rotate(180deg); }
+.details-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0; }
+.details-panel.open { max-height: 1200px; opacity: 1; }
+.details-inner { padding-top: 14px; }
+
+/* ═══ INSETS ═══ */
+.detail-inset { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+.inset-label { font-size: 0.68em; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; margin-bottom: 8px; }
+.inset-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.82em; }
+.inset-row.sub { padding-left: 12px; font-size: 0.78em; opacity: 0.7; }
+.inset-row .k { color: var(--text); }
+.inset-row .v { color: #fff; font-weight: 500; }
+.inset-sep { height: 1px; background: var(--border); margin: 6px 0; }
+.day-detail-grid { padding: 4px 0; }
+.inset-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+/* ═══ SPLIT BAR ═══ */
+.split-bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden; margin: 10px 0 14px; background: var(--surface-2); }
+.split-bar .seg { height: 100%; }
+.platform-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 0.82em; }
+.platform-name { color: var(--text); display: flex; align-items: center; gap: 8px; }
+.plat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.platform-stats { text-align: right; color: #fff; }
+.platform-tickets { font-size: 0.88em; color: var(--text-dim); margin-left: 6px; }
+
+/* ═══ STACKED BAR ═══ */
+.stacked-bar { height: 12px; background: var(--surface-2); border-radius: 5px; overflow: hidden; margin: 12px 0 6px; display: flex; }
+.stacked-seg { height: 100%; }
+.stacked-seg + .stacked-seg { border-left: 1px solid var(--surface); }
+.pct-row { display: flex; justify-content: space-between; align-items: center; }
+.pct-total { font-size: 0.85em; font-weight: 600; color: #fff; }
+.pct-legend { display: flex; gap: 10px; font-size: 0.7em; color: var(--text-dim); }
+.pct-legend-item { display: flex; align-items: center; gap: 4px; }
+.pct-dot { width: 6px; height: 6px; border-radius: 2px; flex-shrink: 0; }
+
+/* ═══ DAY ROWS (Presence) ═══ */
+.day-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.day-row:last-child { border-bottom: none; }
+.day-color-bar { width: 3px; height: 36px; border-radius: 2px; flex-shrink: 0; }
+.day-info { flex: 1; }
+.day-name-p { font-size: 0.78em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.day-progress { height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.day-progress-fill { height: 100%; border-radius: 3px; }
+.day-stats { text-align: right; flex-shrink: 0; }
+.day-count { font-size: 0.95em; font-weight: 600; color: #fff; }
+.day-pct-sm { font-size: 0.7em; color: var(--text-dim); }
+.day-vs { font-size: 0.72em; font-weight: 600; margin-top: 2px; }
+
+/* ═══ PAR JOUR ═══ */
+.day-summary { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.day-summary:last-of-type { border-bottom: none; }
+.day-row-main { display: flex; align-items: stretch; gap: 14px; }
+.day-accent { width: 3px; border-radius: 2px; flex-shrink: 0; }
+.day-content { flex: 1; min-width: 0; }
+.day-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.day-name { font-size: 0.78em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.day-date { font-size: 0.72em; color: var(--text-dim); }
+.day-presence { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.dj-count { font-size: 1.3em; font-weight: 700; color: #fff; }
+.dj-cap { font-size: 0.78em; color: var(--text-dim); }
+.day-bar { height: 7px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.day-bar-fill { height: 100%; border-radius: 3px; }
+.day-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.78em; }
+.dj-pct { font-weight: 600; }
+.tag-pill { display: inline-block; padding: 3px 10px; border-radius: 5px; font-size: 0.75em; font-weight: 600; }
+.tag-pill.green { background: rgba(52,211,153,0.1); color: var(--green); }
+.tag-pill.red { background: rgba(248,113,113,0.1); color: var(--red); }
+.detail-day { margin-bottom: 18px; }
+.detail-day:last-child { margin-bottom: 0; }
+.detail-day-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.detail-day-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.detail-day-name { font-size: 0.72em; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; }
+.pacing-chart { margin-bottom: 10px; }
+.pacing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.pacing-title { font-size: 0.68em; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; }
+.chart-area { background: var(--surface-2); border-radius: 8px; padding: 10px; height: 120px; }
+.chart-area svg { width: 100%; height: 100%; }
+.chart-x-labels { display: flex; justify-content: space-between; font-size: 0.55em; color: var(--text-dim); padding: 4px 10px 0; }
+
+/* ═══ WEEKLY CHART ═══ */
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.chart-title { font-size: 0.68em; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; }
+.chart-legend { display: flex; gap: 10px; font-size: 0.68em; color: var(--text-dim); }
+.chart-legend-item { display: flex; align-items: center; gap: 4px; }
+.legend-bar { width: 10px; height: 6px; border-radius: 1px; }
+.legend-line { width: 12px; height: 2px; border-radius: 1px; }
+.chart-hover-info { height: 22px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 0.7em; }
+.hover-val { font-weight: 600; color: var(--amber); }
+.hover-prev { color: var(--text-dim); }
+.hover-week { color: var(--text-muted); }
+.hover-placeholder { color: var(--text-dim); font-size: 0.9em; opacity: 0.5; }
+.chart-container { position: relative; height: 120px; }
+.bars-row { display: flex; align-items: flex-end; gap: 6px; height: 100%; position: relative; }
+.week-col { flex: 1; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: opacity 0.15s; }
+.week-col:hover { opacity: 0.85; }
+.week-col.current .bar-cur { background: var(--amber) !important; box-shadow: 0 0 10px rgba(251,191,36,0.2); }
+.bar-area { width: 100%; height: 90px; display: flex; align-items: flex-end; justify-content: center; position: relative; }
+.bar-cur { width: 100%; border-radius: 3px 3px 0 0; background: var(--amber); min-height: 3px; transition: height 0.3s ease; }
+.line-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.line-overlay polyline { fill: none; stroke: rgba(255,255,255,0.3); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.line-overlay circle { fill: rgba(255,255,255,0.5); }
+.week-labels { display: flex; gap: 6px; margin-top: 4px; }
+.week-lbl { flex: 1; text-align: center; font-size: 0.65em; color: var(--text-dim); }
+.week-lbl.current { color: var(--amber); font-weight: 600; }
+
+/* ═══ TICKET TABLE ═══ */
+.section-title { font-size: 0.72em; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #fff; margin-bottom: 16px; }
+.table-header { display: flex; justify-content: space-between; padding: 0 8px 10px; font-size: 0.6em; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); font-weight: 600; border-bottom: 1px solid var(--border); }
+.table-header span:last-child { text-align: right; }
+.pleg { display: flex; gap: 12px; font-size: 0.6em; color: var(--text-dim); margin-bottom: 14px; }
+.pleg-item { display: flex; align-items: center; gap: 5px; }
+.pleg-dot { width: 6px; height: 6px; border-radius: 50%; }
+.group-header { display: grid; grid-template-columns: 2fr 80px 56px 60px 72px; gap: 8px; padding: 12px 8px; cursor: pointer; border-radius: 6px; transition: background 0.15s; align-items: center; }
+.group-header:hover { background: rgba(255,255,255,0.01); }
+.group-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.group-arrow { font-size: 0.6em; color: var(--text-dim); transition: transform 0.25s; flex-shrink: 0; }
+.group-header.open .group-arrow { transform: rotate(90deg); }
+.group-name { font-size: 0.85em; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.group-total { font-size: 0.85em; font-weight: 600; color: #fff; text-align: right; }
+.group-pct { font-size: 0.75em; color: var(--text-dim); text-align: right; }
+.group-price { font-size: 0.78em; color: #fff; text-align: right; }
+.group-vs { font-size: 0.75em; font-weight: 600; text-align: right; }
+.group-vs.pos { color: var(--green); }
+.group-vs.neg { color: var(--red); }
+.group-vs.neutral { color: var(--text-dim); }
+.group-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+.group-body.open { max-height: 800px; }
+.pr-row { display: grid; grid-template-columns: 2fr 80px 56px 60px 72px; gap: 8px; padding: 9px 8px; font-size: 0.82em; border-bottom: 1px solid rgba(255,255,255,0.02); align-items: center; }
+.pr-row:last-child { border-bottom: none; }
+.pr-col-header { display: grid; grid-template-columns: 2fr 80px 56px 60px 72px; gap: 8px; padding: 8px 8px 6px; font-size: 0.68em; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); font-weight: 600; border-bottom: 1px solid var(--border); }
+.pr-col-header span:not(:first-child) { text-align: right; }
+.pr-vs { text-align: right; font-size: 0.9em; font-weight: 600; }
+.pr-vs.pos { color: var(--green); }
+.pr-vs.neg { color: var(--red); }
+.pr-vs.neutral { color: var(--text-dim); }
+.pr-name { color: #fff; }
+.pr-days { display: flex; gap: 3px; margin-top: 2px; }
+.pr-day-dot { width: 5px; height: 5px; border-radius: 2px; }
+.pr-plat-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+.pr-plat-seg { height: 100%; }
+.pr-num { text-align: right; color: #fff; }
+.pr-pct { text-align: right; color: var(--text-dim); font-size: 0.9em; }
+.pr-price { text-align: right; color: #fff; }
+
+/* ═══ SUIVI DES VENTES ═══ */
+.toggle-group { display: flex; gap: 4px; }
+.toggle-btn { padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.75em; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.toggle-btn:hover { border-color: var(--text-muted); color: #fff; }
+.toggle-btn.active { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.1); }
+.dtl-col-labels { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; margin-bottom: 8px; padding: 0 4px; }
+.dtl-col-label { font-size: 0.62em; text-transform: uppercase; letter-spacing: 1.5px; color: #fff; font-weight: 600; }
+.dtl-col-label.center { text-align: center; }
+.dtl-col-label.right { text-align: right; }
+.dtl-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; padding: 9px 4px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; }
+.dtl-row:last-child { border-bottom: none; }
+.dtl-row.today { background: rgba(251,191,36,0.04); border-radius: 8px; border: 1px solid rgba(251,191,36,0.08); }
+.dtl-left { min-width: 0; }
+.dtl-right { text-align: right; min-width: 0; }
+.dtl-center { text-align: center; min-width: 50px; }
+.dtl-date { font-size: 0.8em; font-weight: 500; color: #fff; }
+.dtl-sales { font-size: 0.92em; font-weight: 600; color: #fff; }
+.dtl-detail { font-size: 0.72em; color: var(--text-muted); }
+.dtl-accum { font-size: 0.72em; color: var(--text-muted); }
+.dtl-diff { font-size: 0.85em; font-weight: 700; }
+.dtl-diff.pos { color: var(--green); }
+.dtl-diff.neg { color: var(--red); }
+.dtl-pct { font-size: 0.72em; color: var(--text); }
+.dtl-cutoff { display: flex; align-items: center; gap: 10px; padding: 14px 0; }
+.dtl-cutoff-line { flex: 1; height: 1px; background: rgba(251,191,36,0.15); }
+.dtl-cutoff-label { font-size: 0.65em; text-transform: uppercase; letter-spacing: 2px; color: var(--amber); font-weight: 600; white-space: nowrap; }
+.dtl-row.future .dtl-right .dtl-sales { color: var(--text-muted); }
+.dtl-row.future .dtl-right .dtl-date { color: var(--text-muted); }
+.dtl-row.future .dtl-left .dtl-sales { color: rgba(255,255,255,0.75); }
+.dtl-row.future .dtl-left .dtl-date { color: rgba(255,255,255,0.65); }
+.dtl-row.future .dtl-left .dtl-detail { color: rgba(255,255,255,0.4); }
+.dtl-row.future .dtl-left .dtl-accum { color: rgba(255,255,255,0.4); }
+.show-more-btn { display: block; width: 100%; padding: 12px; margin-top: 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.75em; font-family: inherit; cursor: pointer; text-align: center; transition: all 0.2s; }
+.show-more-btn:hover { border-color: var(--text-muted); color: #fff; }
+.hidden { display: none !important; }
+
+/* ═══ PROJECTION ═══ */
+.proj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.q-card { background: var(--surface-2); border-radius: 14px; padding: 20px; border: 1px solid var(--border); min-width: 0; }
+.q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.q-day-name { font-size: 0.82em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.q-pct { font-size: 0.78em; font-weight: 600; }
+.q-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.q-stat-label { font-size: 0.62em; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 3px; }
+.q-stat-value { font-size: 1.3em; font-weight: 700; color: #fff; }
+.q-stat-value.projection { color: var(--green); }
+.q-stat-cap { font-size: 0.72em; color: var(--text-muted); }
+.q-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+.q-bar-fill { height: 100%; border-radius: 3px; }
+.q-current { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
+.q-current-num { font-size: 1.5em; font-weight: 700; color: #fff; }
+.q-current-cap { font-size: 0.8em; color: var(--text-dim); }
+.q-scenarios { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.q-scenario-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.q-scenario-name { display: flex; align-items: center; gap: 5px; font-size: 0.72em; color: var(--text); font-weight: 500; flex-wrap: wrap; min-width: 0; }
+.q-scenario-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.q-scenario-sub { color: var(--text-dim); font-weight: 400; }
+.q-scenario-nums { text-align: right; white-space: nowrap; }
+.q-scenario-proj { font-size: 0.88em; font-weight: 700; color: #fff; display: block; }
+.q-scenario-result { font-size: 0.68em; font-weight: 500; display: block; }
+.chart-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.chart-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.75em; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.chart-tab:hover { border-color: var(--text-muted); color: #fff; }
+/* Dynamic day tab active styles — generated per day */
+.chart-tab.active { background: rgba(168,85,247,0.1); border-color: var(--day-0); color: var(--day-0); }
+.chart-tab.active-day1 { background: rgba(99,102,241,0.1); border-color: var(--day-1); color: var(--day-1); }
+.chart-tab.active-logic { background: rgba(255,255,255,0.06); border-color: var(--text-muted); color: #fff; }
+.chart-subtitle { font-size: 0.75em; color: var(--text); margin-bottom: 12px; }
+.chart-canvas-wrap { background: var(--surface-2); border-radius: 12px; padding: 18px; height: 400px; position: relative; }
+.chart-legend-custom { display: flex; gap: 16px; justify-content: center; padding-top: 12px; font-size: 0.72em; color: var(--text); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-swatch { width: 16px; height: 3px; border-radius: 2px; }
+.legend-swatch.dashed { border-top: 2px dashed; background: none; height: 0; }
+.legend-swatch.dotted { border-top: 2.5px dotted; background: none; height: 0; }
+.legend-swatch.band { height: 10px; border-radius: 2px; }
+.scenario-toggle { display: flex; gap: 6px; margin-top: 10px; }
+.scenario-btn { flex: 1; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 0.72em; font-family: inherit; cursor: pointer; transition: all 0.2s; }
+.scenario-btn.active { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color: #818cf8; font-weight: 600; }
+.proj-method { background: var(--surface-2); border-radius: 12px; padding: 18px 20px; margin-top: 14px; font-size: 0.78em; line-height: 1.7; color: var(--text); }
+.proj-method strong { color: #fff; }
+
+/* ═══ SECTION DIVIDERS ═══ */
+.section-divider { display: flex; align-items: center; gap: 12px; margin: 28px 0 16px; padding: 0 4px; }
+.section-divider-line { flex: 1; height: 1px; background: var(--border); }
+.section-divider-text { font-size: 0.65em; text-transform: uppercase; letter-spacing: 3px; color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 720px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .proj-grid { grid-template-columns: 1fr; }
+    .q-card { padding: 14px; }
+    .pr-row { grid-template-columns: 2fr 70px 56px; gap: 6px; font-size: 0.75em; }
+    .pr-row .pr-pct, .pr-row .pr-vs { display: none; }
+    .pr-col-header { grid-template-columns: 2fr 70px 56px; }
+    .pr-col-header .mob-hide { display: none; }
+    .group-header { grid-template-columns: 2fr 70px 56px; }
+    .group-pct, .group-vs { display: none; }
+    .hero { font-size: 1.7em; }
+    .hero-lg { font-size: 2.2em; }
+    .card { padding: 18px; }
+    .group-right { font-size: 0.68em; }
+    .header-top { padding: 16px 18px 0; }
+    .header-title { font-size: 1.4em; }
+    .header-stats { grid-template-columns: 1fr 1fr; margin: 14px 18px 0; }
+    .h-stat:nth-child(2) { border-right: none; }
+    .h-stat:nth-child(3) { border-top: 1px solid var(--border); padding-left: 0; }
+    .h-stat:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+    .header-compare { flex-direction: column; gap: 6px; padding: 12px 18px; }
+    .header-ts { padding: 6px 18px 10px; }
+}
+@media (max-width: 420px) {
+    .header-stats { grid-template-columns: 1fr; }
+    .h-stat { border-right: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+    .h-stat:not(:first-child) { border-top: 1px solid var(--border); }
+    .compare-details { flex-direction: column; gap: 4px; }
+    .compare-sep { display: none; }
+    .hero.hero-lg { font-size: 2.4em; }
+}
+/* ── Custom scrollbar ── */
+#suivi-future-days, #suivi-future-weeks, #suivi-hidden-weeks, #suivi-hidden-days {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+#suivi-future-days::-webkit-scrollbar, #suivi-future-weeks::-webkit-scrollbar, #suivi-hidden-weeks::-webkit-scrollbar, #suivi-hidden-days::-webkit-scrollbar {
+    width: 5px;
+}
+#suivi-future-days::-webkit-scrollbar-track, #suivi-future-weeks::-webkit-scrollbar-track, #suivi-hidden-weeks::-webkit-scrollbar-track, #suivi-hidden-days::-webkit-scrollbar-track {
+    background: transparent;
+}
+#suivi-future-days::-webkit-scrollbar-thumb, #suivi-future-weeks::-webkit-scrollbar-thumb, #suivi-hidden-weeks::-webkit-scrollbar-thumb, #suivi-hidden-days::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+}
+#suivi-future-days::-webkit-scrollbar-thumb:hover, #suivi-future-weeks::-webkit-scrollbar-thumb:hover, #suivi-hidden-weeks::-webkit-scrollbar-thumb:hover, #suivi-hidden-days::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3);
+}
+/* ── Print ── */
+@media print {
+    body { background: #fff !important; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dashboard { max-width: 100%; padding: 0; }
+    .card { break-inside: avoid; border: 1px solid #ddd; background: #fff !important; }
+    .details-panel { display: block !important; max-height: none !important; opacity: 1 !important; }
+    .details-toggle, .show-more-btn, .toggle-group { display: none !important; }
+    .hero, .card-label, .meta-key, .meta-val, .section-title { color: #000 !important; }
+    .yoy-tag, .yoy-badge, .change-tag, .week-badge { border: 1px solid #999; }
+    .divider { border-color: #ddd !important; }
+    canvas { max-height: 250px !important; }
+    #suivi-future-days, #suivi-future-weeks { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- HEADER                                                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="header">
+    <div class="header-accent"></div>
+    <div class="header-top">
+        <div>
+            <div class="header-title">Paris XXL 2026</div>
+            <div class="header-brand"><strong>Madame Loyal</strong> · 13–14 mars 2026</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;padding-top:2px">
+            <div class="app-mark">Festiflow v1.0</div>
+            <div class="header-badges">
+                <span class="badge badge-live">En vente</span>
+                <span class="badge badge-edition">2ème éd.</span>
+            </div>
+        </div>
+    </div>
+    <div class="header-stats">
+        <div class="h-stat"><div class="h-stat-label">Lieu</div><div class="h-stat-value">Paris Nord Villepinte</div></div>
+        <div class="h-stat"><div class="h-stat-label">Capacité</div><div class="h-stat-value">43 000 <span class="dim">· 2 jours</span></div></div>
+        <div class="h-stat"><div class="h-stat-label">Plateformes</div><div class="h-stat-value">DICE · Shotgun</div></div>
+        <div class="h-stat"><div class="h-stat-label">En vente depuis</div><div class="h-stat-value">86 jours <span class="dim">· 2 Déc 2025</span></div></div>
+    </div>
+    <!-- Compare bar: shown only if HAS_COMPARISON is true -->
+    
+    <div class="header-compare">
+        <span class="compare-label">Comparé à</span>
+        <div class="compare-details">
+            <span class="compare-name">Paris XXL 2025</span>
+            <span class="compare-sep">·</span>
+            <span class="compare-meta">14–15 mars 2025</span>
+            <span class="compare-sep">·</span>
+            <span class="compare-meta">38 000 places</span>
+            <span class="compare-cap-delta">capacité +13%</span>
+        </div>
+    </div>
+    
+    
+    <div class="header-ts">Données au 27 Février 2026 · 14:13</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- KPI GRID (4 cards: Revenus, Jours Restants,             -->
+<!--           Présence Totale, Par Jour)                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="kpi-grid">
+
+<!-- ─── CARD: Revenus ─── -->
+<div class="card">
+    <div class="card-header"><div class="card-label">Revenus<span class="info-tip">i<span class="info-bubble">Revenu = valeur faciale (prix affiché au client). Les commissions prélevées par les plateformes (DICE, Shotgun) ne sont pas déduites.</span></span></div><div class="week-badge">J-14</div></div>
+    <div class="main-row">
+        <div class="ring"><svg viewBox="0 0 100 100"><circle class="ring-track" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" style="stroke:var(--green);stroke-dasharray:264;stroke-dashoffset:67;"/></svg><div class="ring-label"><div class="ring-pct">74%</div><div class="ring-sub">sold out</div></div></div>
+        <div><div class="hero">€1.75M</div><div class="yoy-tag positive">+118.9% vs 2025 à J-14<span class="info-tip" style="width:14px;height:14px;font-size:0.75em;margin-left:5px;background:rgba(255,255,255,0.08)">i<span class="info-bubble">Comparaison à nombre de jours égal avant l'événement. « J-14 » = les ventes cumulées au même point du calendrier pour chaque édition.</span></span></div></div>
+    </div>
+    <div class="split-bar"><div class="seg" style="width:60.3%;background:var(--sg-green)"></div><div class="seg" style="width:39.7%;background:rgba(255,255,255,0.15)"></div></div>
+    <div class="platform-row"><span class="platform-name"><span class="plat-dot" style="background:var(--sg-green)"></span>Shotgun</span><span class="platform-stats">€1.05M <span class="platform-tickets">· 16,476 billets</span></span></div>
+<div class="platform-row"><span class="platform-name"><span class="plat-dot" style="background:rgba(255,255,255,0.35)"></span>DICE</span><span class="platform-stats">€693k <span class="platform-tickets">· 9,992 billets</span></span></div>
+    <div class="divider"></div>
+    <div class="details-toggle" onclick="toggleDetails(this)"><span>Détails</span><span class="arrow">▼</span></div>
+    <div class="details-panel"><div class="details-inner">
+        <div class="chart-header"><span class="chart-title">Revenus cumulés</span><div class="chart-legend"><div class="chart-legend-item"><div class="legend-swatch" style="background:var(--amber)"></div>2026</div><div class="chart-legend-item"><div class="legend-swatch dashed" style="border-color:rgba(239,68,68,0.5)"></div>2025</div></div></div>
+        <div style="background:var(--surface-2);border-radius:12px;padding:14px;position:relative"><canvas id="chartRevenue" style="height:160px;width:100%"></canvas></div>
+        <div style="height:16px"></div>
+        <div style="font-size:0.72em;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Projection</div>
+        <div class="meta-row"><span class="meta-key">Revenu projeté</span><span class="meta-val" style="color:#fff;font-weight:600">€2.00M</span></div>
+        <div style="height:4px"></div>
+        <div class="meta-row"><span class="meta-key">Si sold out</span><span class="meta-val">€2.34M</span></div>
+        <div style="height:14px"></div>
+        <div style="font-size:0.72em;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Métriques</div>
+        <div class="meta-row"><span class="meta-key">Prix moyen du billet<span class="info-tip">i<span class="info-bubble">Moyenne pondérée de la valeur faciale par billet payant, toutes catégories et plateformes confondues.</span></span></span><span class="meta-val">€65.98 <span class="change-tag" style="color:var(--green)">+10.6% vs 2025</span></span></div>
+        
+        <div style="height:4px"></div>
+        <div class="meta-row"><span class="meta-key">Revenu 2025 à J-14</span><span class="meta-val">€798k <span class="change-tag" style="color:var(--green)">+€948k d'avance</span></span></div>
+        
+    </div></div>
+</div>
+
+<!-- ─── CARD: Vélocité Actuelle ─── -->
+<div class="card">
+    <div class="card-header"><div class="card-label">Vélocité Actuelle</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div class="hero hero-lg" style="color:var(--amber)">14<span class="hero-unit">jours restants</span></div>
+        <div style="font-size:0.72em;color:var(--text-dim);text-align:right;line-height:1.4"><strong style="color:var(--text-muted);font-weight:500">13–14 mars</strong><br>2026</div>
+    </div>
+    <div class="divider"></div>
+    <div style="display:grid;grid-template-columns:1fr 50px 44px 44px;gap:4px 10px;align-items:baseline;font-size:0.85em">
+    <span style="color:var(--text-muted);font-weight:500">Fenêtre</span><span style="color:var(--text-muted);font-weight:500;text-align:right">2026</span><span style="color:rgba(255,255,255,0.5);font-weight:500;text-align:right">2025</span><span style="color:rgba(255,255,255,0.5);font-weight:500;text-align:right">Δ</span>
+    <span class="meta-key">Vélocité 3j</span><span style="color:#fff;font-weight:500;text-align:right">367/j</span><span style="color:rgba(255,255,255,0.55);text-align:right">261/j</span><span style="color:var(--green);font-weight:500;text-align:right">+41%</span>
+    <span class="meta-key">Vélocité 7j</span><span style="color:#fff;font-weight:500;text-align:right">300/j</span><span style="color:rgba(255,255,255,0.55);text-align:right">223/j</span><span style="color:var(--green);font-weight:500;text-align:right">+34%</span>
+    <span class="meta-key">Vélocité 14j</span><span style="color:#fff;font-weight:500;text-align:right">272/j</span><span style="color:rgba(255,255,255,0.55);text-align:right">206/j</span><span style="color:var(--green);font-weight:500;text-align:right">+32%</span>
+    <span class="meta-key">Vélocité 30j</span><span style="color:#fff;font-weight:500;text-align:right">308/j</span><span style="color:rgba(255,255,255,0.55);text-align:right">194/j</span><span style="color:var(--green);font-weight:500;text-align:right">+59%</span>
+    </div>
+    <div class="divider"></div>
+    <div class="details-toggle" onclick="toggleDetails(this)"><span>Détails</span><span class="arrow">▼</span></div>
+    <div class="details-panel"><div class="details-inner">
+        <div class="chart-header"><span class="chart-title">Vélocité 7j glissante</span><div class="chart-legend"><div class="chart-legend-item"><div class="legend-swatch" style="background:var(--amber)"></div>2026</div><div class="chart-legend-item"><div class="legend-swatch dashed" style="border-color:rgba(239,68,68,0.5)"></div>2025</div></div></div>
+        <div style="background:var(--surface-2);border-radius:12px;padding:14px;position:relative"><canvas id="chartVelocity" style="height:160px;width:100%"></canvas></div>
+        <div style="height:16px"></div>
+        <div class="chart-header"><span class="chart-title">Vélocité 14j glissante</span><div class="chart-legend"><div class="chart-legend-item"><div class="legend-swatch" style="background:var(--amber)"></div>2026</div><div class="chart-legend-item"><div class="legend-swatch dashed" style="border-color:rgba(239,68,68,0.5)"></div>2025</div></div></div>
+        <div style="background:var(--surface-2);border-radius:12px;padding:14px;position:relative"><canvas id="chartVelocity14" style="height:160px;width:100%"></canvas></div>
+    </div></div>
+</div>
+
+<!-- ─── CARD: Présence Totale ─── -->
+<div class="card">
+    <div class="card-header"><div class="card-label">Présence Totale<span class="info-tip">i<span class="info-bubble">Nombre d'entrées estimées. Les pass multi-jours sont comptés une fois par jour (ex. un pass 2 jours = 2 entrées). Les invitations et jeux concours sont inclus.</span></span></div><div class="yoy-badge positive">+91.3% vs 2025 à J-14</div></div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px"><div class="hero" style="font-size:2.4em">32,030</div><span style="font-size:0.82em;color:var(--text-dim)">/ 43 000</span></div>
+    <!-- Stacked bar: N segments for N days -->
+    <div class="stacked-bar"><div class="stacked-seg" style="width:30.3%;background:var(--day-0)"></div><div class="stacked-seg" style="width:44.2%;background:var(--day-1)"></div></div>
+    <div class="pct-row"><span class="pct-total">74.5%</span><div class="pct-legend"><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-0)"></div>Ven 61%</div><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-1)"></div>Sam 88%</div></div></div>
+    <div class="divider"></div>
+    <div class="meta-row"><span class="meta-key">Billets payants</span><span class="meta-val">26,468</span></div>
+    <div style="height:6px"></div>
+    <div class="meta-row"><span class="meta-key">Invitations</span><span class="meta-val">14</span></div>
+    <div style="height:6px"></div>
+    <div class="meta-row"><span class="meta-key">Jeu concours</span><span class="meta-val">0</span></div>
+    <div style="height:6px"></div>
+    <div class="meta-row"><span class="meta-key">Groupes (gratuit)</span><span class="meta-val">128</span></div>
+    <div style="height:6px"></div>
+    <div class="meta-row"><span class="meta-key">Total billets</span><span class="meta-val" style="color:#fff;font-weight:600">26,610</span></div>
+    <div class="divider"></div>
+    <div class="details-toggle" onclick="toggleDetails(this)"><span>Détails</span><span class="arrow">▼</span></div>
+    <div class="details-panel"><div class="details-inner">
+        <div class="detail-inset"><div class="inset-label">Billets → Présence</div>
+            <div class="inset-row"><span class="k">Billets 1 jour</span><span class="v">21,190 <span style="font-size:0.85em;color:var(--text-dim)">× 1</span></span></div>
+<div class="inset-row"><span class="k">Pass 2 Jours</span><span class="v">5,420 <span style="font-size:0.85em;color:var(--text-dim)">× 2</span></span></div>
+<div class="inset-row"><span class="k">Gratuits (inv + groupes)</span><span class="v">142 <span style="font-size:0.85em;color:var(--text-dim)">× 1</span></span></div>
+            <div class="inset-divider"></div>
+            <div class="inset-row"><span class="k">Présence totale</span><span class="v" style="color:#fff;font-weight:600">32,030</span></div>
+        </div>
+        
+        <div class="detail-inset"><div class="inset-label">vs 2025 (même J-14)</div>
+            <div class="inset-row"><span class="k">Présence totale</span><span class="v">16,746 <span class="change-tag" style="color:var(--green)">+91.3%</span></span></div>
+            <div class="inset-divider"></div>
+            
+        </div>
+        
+    </div></div>
+</div>
+
+<!-- ─── CARD: Par Jour (hidden for 1-day events) ─── -->
+
+<div class="card">
+    <div class="card-label">Par Jour</div>
+    <div class="day-summary"><div class="day-row-main"><div class="day-accent" style="background:var(--day-0)"></div><div class="day-content"><div class="day-top"><div class="day-name" style="color:var(--day-0)">Vendredi</div><div class="day-date">13 mars 2026</div></div><div class="day-presence"><span class="dj-count">13,024</span><span class="dj-cap">/ 21,500</span></div><div class="day-bar"><div class="day-bar-fill" style="width:60.6%;background:var(--day-0)"></div></div><div class="day-meta"><span class="dj-pct" style="color:var(--day-0)">60.6%</span><span class="tag-pill green">+53% vs 2025</span></div><div style="height:8px"></div><div class="meta-row"><span class="meta-key">Vélocité 14j</span><span class="meta-val">124 /jour</span></div><div style="height:4px"></div><div class="meta-row"><span class="meta-key">Restants</span><span class="meta-val">8,476</span></div></div></div></div>
+<div class="day-summary"><div class="day-row-main"><div class="day-accent" style="background:var(--day-1)"></div><div class="day-content"><div class="day-top"><div class="day-name" style="color:var(--day-1)">Samedi</div><div class="day-date">14 mars 2026</div></div><div class="day-presence"><span class="dj-count">19,006</span><span class="dj-cap">/ 21,500</span></div><div class="day-bar"><div class="day-bar-fill" style="width:88.4%;background:var(--day-1)"></div></div><div class="day-meta"><span class="dj-pct" style="color:var(--day-1)">88.4%</span><span class="tag-pill green">+131% vs 2025</span></div><div style="height:8px"></div><div class="meta-row"><span class="meta-key">Vélocité 14j</span><span class="meta-val">164 /jour</span></div><div style="height:4px"></div><div class="meta-row"><span class="meta-key">Restants</span><span class="meta-val">2,494</span></div></div></div></div>
+    <div class="divider"></div>
+    <div class="details-toggle" onclick="toggleDetails(this)"><span>Détails</span><span class="arrow">▼</span></div>
+    <div class="details-panel"><div class="details-inner">
+        <div class="detail-day"><div class="detail-day-header"><div class="detail-day-dot" style="background:var(--day-0)"></div><span class="detail-day-name" style="color:var(--day-0)">Vendredi</span></div><div class="day-detail-grid"><div class="inset-row"><span class="k">Billets 1 jour</span><span class="v">7,604</span></div><div class="inset-row"><span class="k">Pass 2 Jours</span><span class="v">5,420</span></div><div class="inset-sep"></div><div class="inset-row"><span class="k" style="font-weight:600">Présence totale</span><span class="v" style="font-weight:700">13,024</span></div><div class="detail-inset" style="margin-top:10px"><div class="inset-label">vs 2025 (même J-14)</div><div class="inset-row"><span class="k">Présence totale</span><span class="v">8,509 <span class="change-tag" style="color:var(--green)">+53%</span></span></div></div></div></div>
+<div class="detail-day"><div class="detail-day-header"><div class="detail-day-dot" style="background:var(--day-1)"></div><span class="detail-day-name" style="color:var(--day-1)">Samedi</span></div><div class="day-detail-grid"><div class="inset-row"><span class="k">Billets 1 jour</span><span class="v">13,586</span></div><div class="inset-row"><span class="k">Pass 2 Jours</span><span class="v">5,420</span></div><div class="inset-sep"></div><div class="inset-row"><span class="k" style="font-weight:600">Présence totale</span><span class="v" style="font-weight:700">19,006</span></div><div class="detail-inset" style="margin-top:10px"><div class="inset-label">vs 2025 (même J-14)</div><div class="inset-row"><span class="k">Présence totale</span><span class="v">8,237 <span class="change-tag" style="color:var(--green)">+131%</span></span></div></div></div></div>
+    </div></div>
+</div>
+
+
+</div><!-- /kpi-grid -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BILLETTERIE SECTION                                     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-text">Billetterie</div><div class="section-divider-line"></div></div>
+
+<!-- ─── Répartition des billets ─── -->
+<div class="section-gap"><div class="card">
+    <div class="section-title">Répartition des billets</div>
+    <div class="pr-col-header"><span></span><span>Total</span><span class="mob-hide">%</span><span>Prix Ø</span><span class="mob-hide">vs 2025</span></div>
+    <div class="group-header" onclick="toggleGroup(this)"><div class="group-left"><span class="group-arrow">▶</span><span class="group-name">Billets Réguliers</span></div><span class="group-total">25,522</span><span class="group-pct">95.9%</span><span class="group-price">€64</span><span class="group-vs pos">+0%</span></div>
+    <div class="group-body">
+        <div class="pr-row"><div class="pr-name">Samedi</div><div class="pr-num">13,144</div><div class="pr-pct">49.4%</div><div class="pr-price">€56</div><div class="pr-vs pos">—</div></div>
+        <div class="pr-row"><div class="pr-name">Vendredi</div><div class="pr-num">7,281</div><div class="pr-pct">27.4%</div><div class="pr-price">€54</div><div class="pr-vs pos">—</div></div>
+        <div class="pr-row"><div class="pr-name">Pass 2 Jours</div><div class="pr-num">5,097</div><div class="pr-pct">19.2%</div><div class="pr-price">€99</div><div class="pr-vs pos">—</div></div>
+    </div>
+    <div class="group-header" onclick="toggleGroup(this)"><div class="group-left"><span class="group-arrow">▶</span><span class="group-name">Premium / VIP</span></div><span class="group-total">1,074</span><span class="group-pct">4.0%</span><span class="group-price">€110</span><span class="group-vs pos">+0%</span></div>
+    <div class="group-body">
+        <div class="pr-row"><div class="pr-name">VIP Samedi</div><div class="pr-num">442</div><div class="pr-pct">1.7%</div><div class="pr-price">€87</div><div class="pr-vs pos">—</div></div>
+        <div class="pr-row"><div class="pr-name">VIP Pass 2 Jours</div><div class="pr-num">319</div><div class="pr-pct">1.2%</div><div class="pr-price">€156</div><div class="pr-vs pos">—</div></div>
+        <div class="pr-row"><div class="pr-name">VIP Vendredi</div><div class="pr-num">313</div><div class="pr-pct">1.2%</div><div class="pr-price">€94</div><div class="pr-vs pos">—</div></div>
+    </div>
+    <div class="group-header" onclick="toggleGroup(this)"><div class="group-left"><span class="group-arrow">▶</span><span class="group-name" style="opacity:0.6">Invitations</span></div><span class="group-total" style="opacity:0.6">14</span><span class="group-pct" style="opacity:0.6">0.1%</span><span class="group-price" style="opacity:0.6">gratuit</span><span class="group-vs neutral" style="opacity:0.6">—</span></div>
+    <div class="group-body">
+        <div class="pr-row" style="opacity:0.6"><div class="pr-name">Invitations</div><div class="pr-num">14</div><div class="pr-pct">0.1%</div><div class="pr-price">€0</div><div class="pr-vs neutral">—</div></div>
+    </div>
+    <div class="group-header grand-total" style="margin-top:8px;border-top:1px solid var(--border);padding-top:12px"><div class="group-left"><span class="group-arrow" style="visibility:hidden">▶</span><span class="group-name" style="font-weight:700">Total</span></div><span class="group-total" style="font-weight:700">26,610</span><span class="group-pct" style="font-weight:700">100%</span><span class="group-price">€66</span><span class="group-vs neutral">—</span></div>
+</div></div>
+
+<!-- ─── Suivi des ventes ─── -->
+<div class="section-gap"><div class="card">
+    <div class="card-header"><div class="section-title" style="margin-bottom:0">Suivi des ventes<span class="info-tip" style="font-size:0.5em">i<span class="info-bubble">Les totaux quotidiens peuvent légèrement différer des dashboards Shotgun. Shotgun répartit les ventes par phase tarifaire, tandis que ce dashboard utilise la date d'achat individuelle de chaque billet. Les totaux cumulés restent identiques.</span></span></div><div class="toggle-group"><button class="toggle-btn active" onclick="switchSuivi('jour')">Jour</button><button class="toggle-btn" onclick="switchSuivi('semaine')">Semaine</button></div></div>
+    <div id="suivi-jour">
+        <div class="dtl-col-labels"><div class="dtl-col-label">2025 (même jour)</div><div class="dtl-col-label center">Diff</div><div class="dtl-col-label right">2026 (actuel)</div></div>
+        <div id="suivi-hidden-days" style="display:none">
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 3 Déc</div><div class="dtl-sales">823</div><div class="dtl-detail">SG 823 · DICE 0</div><div class="dtl-accum">Acc. 823</div></div><div class="dtl-center"><div class="dtl-diff pos">+4372</div><div class="dtl-pct">+531.2%</div></div><div class="dtl-right"><div class="dtl-date">Mar 2 Déc</div><div class="dtl-sales">5195</div><div class="dtl-detail">SG 2655 · DICE 2540</div><div class="dtl-accum">Acc. 5,195</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 4 Déc</div><div class="dtl-sales">143</div><div class="dtl-detail">SG 143 · DICE 0</div><div class="dtl-accum">Acc. 966</div></div><div class="dtl-center"><div class="dtl-diff pos">+1088</div><div class="dtl-pct">+760.8%</div></div><div class="dtl-right"><div class="dtl-date">Mer 3 Déc</div><div class="dtl-sales">1231</div><div class="dtl-detail">SG 629 · DICE 602</div><div class="dtl-accum">Acc. 6,426</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 5 Déc</div><div class="dtl-sales">67</div><div class="dtl-detail">SG 67 · DICE 0</div><div class="dtl-accum">Acc. 1,033</div></div><div class="dtl-center"><div class="dtl-diff pos">+455</div><div class="dtl-pct">+679.1%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 4 Déc</div><div class="dtl-sales">522</div><div class="dtl-detail">SG 271 · DICE 251</div><div class="dtl-accum">Acc. 6,948</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 6 Déc</div><div class="dtl-sales">74</div><div class="dtl-detail">SG 74 · DICE 0</div><div class="dtl-accum">Acc. 1,107</div></div><div class="dtl-center"><div class="dtl-diff pos">+283</div><div class="dtl-pct">+382.4%</div></div><div class="dtl-right"><div class="dtl-date">Ven 5 Déc</div><div class="dtl-sales">357</div><div class="dtl-detail">SG 181 · DICE 176</div><div class="dtl-accum">Acc. 7,305</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 7 Déc</div><div class="dtl-sales">93</div><div class="dtl-detail">SG 93 · DICE 0</div><div class="dtl-accum">Acc. 1,200</div></div><div class="dtl-center"><div class="dtl-diff pos">+291</div><div class="dtl-pct">+312.9%</div></div><div class="dtl-right"><div class="dtl-date">Sam 6 Déc</div><div class="dtl-sales">384</div><div class="dtl-detail">SG 203 · DICE 181</div><div class="dtl-accum">Acc. 7,689</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 8 Déc</div><div class="dtl-sales">64</div><div class="dtl-detail">SG 64 · DICE 0</div><div class="dtl-accum">Acc. 1,264</div></div><div class="dtl-center"><div class="dtl-diff pos">+275</div><div class="dtl-pct">+429.7%</div></div><div class="dtl-right"><div class="dtl-date">Dim 7 Déc</div><div class="dtl-sales">339</div><div class="dtl-detail">SG 160 · DICE 179</div><div class="dtl-accum">Acc. 8,028</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 9 Déc</div><div class="dtl-sales">73</div><div class="dtl-detail">SG 73 · DICE 0</div><div class="dtl-accum">Acc. 1,337</div></div><div class="dtl-center"><div class="dtl-diff pos">+175</div><div class="dtl-pct">+239.7%</div></div><div class="dtl-right"><div class="dtl-date">Lun 8 Déc</div><div class="dtl-sales">248</div><div class="dtl-detail">SG 132 · DICE 116</div><div class="dtl-accum">Acc. 8,276</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 10 Déc</div><div class="dtl-sales">47</div><div class="dtl-detail">SG 47 · DICE 0</div><div class="dtl-accum">Acc. 1,384</div></div><div class="dtl-center"><div class="dtl-diff pos">+177</div><div class="dtl-pct">+376.6%</div></div><div class="dtl-right"><div class="dtl-date">Mar 9 Déc</div><div class="dtl-sales">224</div><div class="dtl-detail">SG 126 · DICE 98</div><div class="dtl-accum">Acc. 8,500</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 11 Déc</div><div class="dtl-sales">45</div><div class="dtl-detail">SG 45 · DICE 0</div><div class="dtl-accum">Acc. 1,429</div></div><div class="dtl-center"><div class="dtl-diff pos">+248</div><div class="dtl-pct">+551.1%</div></div><div class="dtl-right"><div class="dtl-date">Mer 10 Déc</div><div class="dtl-sales">293</div><div class="dtl-detail">SG 173 · DICE 120</div><div class="dtl-accum">Acc. 8,793</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 12 Déc</div><div class="dtl-sales">52</div><div class="dtl-detail">SG 52 · DICE 0</div><div class="dtl-accum">Acc. 1,481</div></div><div class="dtl-center"><div class="dtl-diff pos">+131</div><div class="dtl-pct">+251.9%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 11 Déc</div><div class="dtl-sales">183</div><div class="dtl-detail">SG 114 · DICE 69</div><div class="dtl-accum">Acc. 8,976</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 13 Déc</div><div class="dtl-sales">42</div><div class="dtl-detail">SG 42 · DICE 0</div><div class="dtl-accum">Acc. 1,523</div></div><div class="dtl-center"><div class="dtl-diff pos">+156</div><div class="dtl-pct">+371.4%</div></div><div class="dtl-right"><div class="dtl-date">Ven 12 Déc</div><div class="dtl-sales">198</div><div class="dtl-detail">SG 133 · DICE 65</div><div class="dtl-accum">Acc. 9,174</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 14 Déc</div><div class="dtl-sales">73</div><div class="dtl-detail">SG 73 · DICE 0</div><div class="dtl-accum">Acc. 1,596</div></div><div class="dtl-center"><div class="dtl-diff pos">+93</div><div class="dtl-pct">+127.4%</div></div><div class="dtl-right"><div class="dtl-date">Sam 13 Déc</div><div class="dtl-sales">166</div><div class="dtl-detail">SG 114 · DICE 52</div><div class="dtl-accum">Acc. 9,340</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 15 Déc</div><div class="dtl-sales">32</div><div class="dtl-detail">SG 32 · DICE 0</div><div class="dtl-accum">Acc. 1,628</div></div><div class="dtl-center"><div class="dtl-diff pos">+115</div><div class="dtl-pct">+359.4%</div></div><div class="dtl-right"><div class="dtl-date">Dim 14 Déc</div><div class="dtl-sales">147</div><div class="dtl-detail">SG 71 · DICE 76</div><div class="dtl-accum">Acc. 9,487</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 16 Déc</div><div class="dtl-sales">14</div><div class="dtl-detail">SG 14 · DICE 0</div><div class="dtl-accum">Acc. 1,642</div></div><div class="dtl-center"><div class="dtl-diff pos">+164</div><div class="dtl-pct">+1171.4%</div></div><div class="dtl-right"><div class="dtl-date">Lun 15 Déc</div><div class="dtl-sales">178</div><div class="dtl-detail">SG 81 · DICE 97</div><div class="dtl-accum">Acc. 9,665</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 17 Déc</div><div class="dtl-sales">38</div><div class="dtl-detail">SG 38 · DICE 0</div><div class="dtl-accum">Acc. 1,680</div></div><div class="dtl-center"><div class="dtl-diff pos">+186</div><div class="dtl-pct">+489.5%</div></div><div class="dtl-right"><div class="dtl-date">Mar 16 Déc</div><div class="dtl-sales">224</div><div class="dtl-detail">SG 110 · DICE 114</div><div class="dtl-accum">Acc. 9,889</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 18 Déc</div><div class="dtl-sales">1282</div><div class="dtl-detail">SG 32 · DICE 1250</div><div class="dtl-accum">Acc. 2,962</div></div><div class="dtl-center"><div class="dtl-diff neg">-1105</div><div class="dtl-pct">-86.2%</div></div><div class="dtl-right"><div class="dtl-date">Mer 17 Déc</div><div class="dtl-sales">177</div><div class="dtl-detail">SG 102 · DICE 75</div><div class="dtl-accum">Acc. 10,066</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 19 Déc</div><div class="dtl-sales">268</div><div class="dtl-detail">SG 27 · DICE 241</div><div class="dtl-accum">Acc. 3,230</div></div><div class="dtl-center"><div class="dtl-diff neg">-156</div><div class="dtl-pct">-58.2%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 18 Déc</div><div class="dtl-sales">112</div><div class="dtl-detail">SG 74 · DICE 38</div><div class="dtl-accum">Acc. 10,178</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 20 Déc</div><div class="dtl-sales">173</div><div class="dtl-detail">SG 45 · DICE 128</div><div class="dtl-accum">Acc. 3,403</div></div><div class="dtl-center"><div class="dtl-diff neg">-18</div><div class="dtl-pct">-10.4%</div></div><div class="dtl-right"><div class="dtl-date">Ven 19 Déc</div><div class="dtl-sales">155</div><div class="dtl-detail">SG 85 · DICE 70</div><div class="dtl-accum">Acc. 10,333</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 21 Déc</div><div class="dtl-sales">214</div><div class="dtl-detail">SG 30 · DICE 184</div><div class="dtl-accum">Acc. 3,617</div></div><div class="dtl-center"><div class="dtl-diff neg">-71</div><div class="dtl-pct">-33.2%</div></div><div class="dtl-right"><div class="dtl-date">Sam 20 Déc</div><div class="dtl-sales">143</div><div class="dtl-detail">SG 65 · DICE 78</div><div class="dtl-accum">Acc. 10,476</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 22 Déc</div><div class="dtl-sales">130</div><div class="dtl-detail">SG 28 · DICE 102</div><div class="dtl-accum">Acc. 3,747</div></div><div class="dtl-center"><div class="dtl-diff pos">+14</div><div class="dtl-pct">+10.8%</div></div><div class="dtl-right"><div class="dtl-date">Dim 21 Déc</div><div class="dtl-sales">144</div><div class="dtl-detail">SG 97 · DICE 47</div><div class="dtl-accum">Acc. 10,620</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 23 Déc</div><div class="dtl-sales">119</div><div class="dtl-detail">SG 29 · DICE 90</div><div class="dtl-accum">Acc. 3,866</div></div><div class="dtl-center"><div class="dtl-diff pos">+2</div><div class="dtl-pct">+1.7%</div></div><div class="dtl-right"><div class="dtl-date">Lun 22 Déc</div><div class="dtl-sales">121</div><div class="dtl-detail">SG 63 · DICE 58</div><div class="dtl-accum">Acc. 10,741</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 24 Déc</div><div class="dtl-sales">117</div><div class="dtl-detail">SG 26 · DICE 91</div><div class="dtl-accum">Acc. 3,983</div></div><div class="dtl-center"><div class="dtl-diff pos">+1</div><div class="dtl-pct">+0.9%</div></div><div class="dtl-right"><div class="dtl-date">Mar 23 Déc</div><div class="dtl-sales">118</div><div class="dtl-detail">SG 74 · DICE 44</div><div class="dtl-accum">Acc. 10,859</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 25 Déc</div><div class="dtl-sales">70</div><div class="dtl-detail">SG 23 · DICE 47</div><div class="dtl-accum">Acc. 4,053</div></div><div class="dtl-center"><div class="dtl-diff pos">+55</div><div class="dtl-pct">+78.6%</div></div><div class="dtl-right"><div class="dtl-date">Mer 24 Déc</div><div class="dtl-sales">125</div><div class="dtl-detail">SG 68 · DICE 57</div><div class="dtl-accum">Acc. 10,984</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 26 Déc</div><div class="dtl-sales">87</div><div class="dtl-detail">SG 28 · DICE 59</div><div class="dtl-accum">Acc. 4,140</div></div><div class="dtl-center"><div class="dtl-diff pos">+24</div><div class="dtl-pct">+27.6%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 25 Déc</div><div class="dtl-sales">111</div><div class="dtl-detail">SG 69 · DICE 42</div><div class="dtl-accum">Acc. 11,095</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 27 Déc</div><div class="dtl-sales">73</div><div class="dtl-detail">SG 14 · DICE 59</div><div class="dtl-accum">Acc. 4,213</div></div><div class="dtl-center"><div class="dtl-diff pos">+35</div><div class="dtl-pct">+47.9%</div></div><div class="dtl-right"><div class="dtl-date">Ven 26 Déc</div><div class="dtl-sales">108</div><div class="dtl-detail">SG 66 · DICE 42</div><div class="dtl-accum">Acc. 11,203</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 28 Déc</div><div class="dtl-sales">77</div><div class="dtl-detail">SG 26 · DICE 51</div><div class="dtl-accum">Acc. 4,290</div></div><div class="dtl-center"><div class="dtl-diff pos">+0</div><div class="dtl-pct">+0.0%</div></div><div class="dtl-right"><div class="dtl-date">Sam 27 Déc</div><div class="dtl-sales">77</div><div class="dtl-detail">SG 35 · DICE 42</div><div class="dtl-accum">Acc. 11,280</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 29 Déc</div><div class="dtl-sales">75</div><div class="dtl-detail">SG 32 · DICE 43</div><div class="dtl-accum">Acc. 4,365</div></div><div class="dtl-center"><div class="dtl-diff pos">+33</div><div class="dtl-pct">+44.0%</div></div><div class="dtl-right"><div class="dtl-date">Dim 28 Déc</div><div class="dtl-sales">108</div><div class="dtl-detail">SG 68 · DICE 40</div><div class="dtl-accum">Acc. 11,388</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 30 Déc</div><div class="dtl-sales">44</div><div class="dtl-detail">SG 17 · DICE 27</div><div class="dtl-accum">Acc. 4,409</div></div><div class="dtl-center"><div class="dtl-diff pos">+62</div><div class="dtl-pct">+140.9%</div></div><div class="dtl-right"><div class="dtl-date">Lun 29 Déc</div><div class="dtl-sales">106</div><div class="dtl-detail">SG 65 · DICE 41</div><div class="dtl-accum">Acc. 11,494</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 31 Déc</div><div class="dtl-sales">73</div><div class="dtl-detail">SG 28 · DICE 45</div><div class="dtl-accum">Acc. 4,482</div></div><div class="dtl-center"><div class="dtl-diff pos">+55</div><div class="dtl-pct">+75.3%</div></div><div class="dtl-right"><div class="dtl-date">Mar 30 Déc</div><div class="dtl-sales">128</div><div class="dtl-detail">SG 81 · DICE 47</div><div class="dtl-accum">Acc. 11,622</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 1 Jan</div><div class="dtl-sales">67</div><div class="dtl-detail">SG 37 · DICE 30</div><div class="dtl-accum">Acc. 4,549</div></div><div class="dtl-center"><div class="dtl-diff pos">+65</div><div class="dtl-pct">+97.0%</div></div><div class="dtl-right"><div class="dtl-date">Mer 31 Déc</div><div class="dtl-sales">132</div><div class="dtl-detail">SG 92 · DICE 40</div><div class="dtl-accum">Acc. 11,754</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 2 Jan</div><div class="dtl-sales">97</div><div class="dtl-detail">SG 37 · DICE 60</div><div class="dtl-accum">Acc. 4,646</div></div><div class="dtl-center"><div class="dtl-diff pos">+16</div><div class="dtl-pct">+16.5%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 1 Jan</div><div class="dtl-sales">113</div><div class="dtl-detail">SG 66 · DICE 47</div><div class="dtl-accum">Acc. 11,867</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 3 Jan</div><div class="dtl-sales">152</div><div class="dtl-detail">SG 83 · DICE 69</div><div class="dtl-accum">Acc. 4,798</div></div><div class="dtl-center"><div class="dtl-diff pos">+0</div><div class="dtl-pct">+0.0%</div></div><div class="dtl-right"><div class="dtl-date">Ven 2 Jan</div><div class="dtl-sales">152</div><div class="dtl-detail">SG 104 · DICE 48</div><div class="dtl-accum">Acc. 12,019</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 4 Jan</div><div class="dtl-sales">138</div><div class="dtl-detail">SG 73 · DICE 65</div><div class="dtl-accum">Acc. 4,936</div></div><div class="dtl-center"><div class="dtl-diff pos">+40</div><div class="dtl-pct">+29.0%</div></div><div class="dtl-right"><div class="dtl-date">Sam 3 Jan</div><div class="dtl-sales">178</div><div class="dtl-detail">SG 115 · DICE 63</div><div class="dtl-accum">Acc. 12,197</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 5 Jan</div><div class="dtl-sales">95</div><div class="dtl-detail">SG 50 · DICE 45</div><div class="dtl-accum">Acc. 5,031</div></div><div class="dtl-center"><div class="dtl-diff pos">+62</div><div class="dtl-pct">+65.3%</div></div><div class="dtl-right"><div class="dtl-date">Dim 4 Jan</div><div class="dtl-sales">157</div><div class="dtl-detail">SG 84 · DICE 73</div><div class="dtl-accum">Acc. 12,354</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 6 Jan</div><div class="dtl-sales">112</div><div class="dtl-detail">SG 64 · DICE 48</div><div class="dtl-accum">Acc. 5,143</div></div><div class="dtl-center"><div class="dtl-diff pos">+74</div><div class="dtl-pct">+66.1%</div></div><div class="dtl-right"><div class="dtl-date">Lun 5 Jan</div><div class="dtl-sales">186</div><div class="dtl-detail">SG 112 · DICE 74</div><div class="dtl-accum">Acc. 12,540</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 7 Jan</div><div class="dtl-sales">76</div><div class="dtl-detail">SG 49 · DICE 27</div><div class="dtl-accum">Acc. 5,219</div></div><div class="dtl-center"><div class="dtl-diff pos">+106</div><div class="dtl-pct">+139.5%</div></div><div class="dtl-right"><div class="dtl-date">Mar 6 Jan</div><div class="dtl-sales">182</div><div class="dtl-detail">SG 124 · DICE 58</div><div class="dtl-accum">Acc. 12,722</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 8 Jan</div><div class="dtl-sales">94</div><div class="dtl-detail">SG 63 · DICE 31</div><div class="dtl-accum">Acc. 5,313</div></div><div class="dtl-center"><div class="dtl-diff pos">+91</div><div class="dtl-pct">+96.8%</div></div><div class="dtl-right"><div class="dtl-date">Mer 7 Jan</div><div class="dtl-sales">185</div><div class="dtl-detail">SG 113 · DICE 72</div><div class="dtl-accum">Acc. 12,907</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 9 Jan</div><div class="dtl-sales">101</div><div class="dtl-detail">SG 67 · DICE 34</div><div class="dtl-accum">Acc. 5,414</div></div><div class="dtl-center"><div class="dtl-diff pos">+69</div><div class="dtl-pct">+68.3%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 8 Jan</div><div class="dtl-sales">170</div><div class="dtl-detail">SG 115 · DICE 55</div><div class="dtl-accum">Acc. 13,077</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 10 Jan</div><div class="dtl-sales">126</div><div class="dtl-detail">SG 97 · DICE 29</div><div class="dtl-accum">Acc. 5,540</div></div><div class="dtl-center"><div class="dtl-diff pos">+59</div><div class="dtl-pct">+46.8%</div></div><div class="dtl-right"><div class="dtl-date">Ven 9 Jan</div><div class="dtl-sales">185</div><div class="dtl-detail">SG 128 · DICE 57</div><div class="dtl-accum">Acc. 13,262</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 11 Jan</div><div class="dtl-sales">116</div><div class="dtl-detail">SG 69 · DICE 47</div><div class="dtl-accum">Acc. 5,656</div></div><div class="dtl-center"><div class="dtl-diff pos">+66</div><div class="dtl-pct">+56.9%</div></div><div class="dtl-right"><div class="dtl-date">Sam 10 Jan</div><div class="dtl-sales">182</div><div class="dtl-detail">SG 121 · DICE 61</div><div class="dtl-accum">Acc. 13,444</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 12 Jan</div><div class="dtl-sales">102</div><div class="dtl-detail">SG 75 · DICE 27</div><div class="dtl-accum">Acc. 5,758</div></div><div class="dtl-center"><div class="dtl-diff pos">+112</div><div class="dtl-pct">+109.8%</div></div><div class="dtl-right"><div class="dtl-date">Dim 11 Jan</div><div class="dtl-sales">214</div><div class="dtl-detail">SG 123 · DICE 91</div><div class="dtl-accum">Acc. 13,658</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 13 Jan</div><div class="dtl-sales">75</div><div class="dtl-detail">SG 47 · DICE 28</div><div class="dtl-accum">Acc. 5,833</div></div><div class="dtl-center"><div class="dtl-diff pos">+116</div><div class="dtl-pct">+154.7%</div></div><div class="dtl-right"><div class="dtl-date">Lun 12 Jan</div><div class="dtl-sales">191</div><div class="dtl-detail">SG 137 · DICE 54</div><div class="dtl-accum">Acc. 13,849</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 14 Jan</div><div class="dtl-sales">68</div><div class="dtl-detail">SG 51 · DICE 17</div><div class="dtl-accum">Acc. 5,901</div></div><div class="dtl-center"><div class="dtl-diff pos">+99</div><div class="dtl-pct">+145.6%</div></div><div class="dtl-right"><div class="dtl-date">Mar 13 Jan</div><div class="dtl-sales">167</div><div class="dtl-detail">SG 98 · DICE 69</div><div class="dtl-accum">Acc. 14,016</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 15 Jan</div><div class="dtl-sales">74</div><div class="dtl-detail">SG 54 · DICE 20</div><div class="dtl-accum">Acc. 5,975</div></div><div class="dtl-center"><div class="dtl-diff pos">+333</div><div class="dtl-pct">+450.0%</div></div><div class="dtl-right"><div class="dtl-date">Mer 14 Jan</div><div class="dtl-sales">407</div><div class="dtl-detail">SG 223 · DICE 184</div><div class="dtl-accum">Acc. 14,423</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 16 Jan</div><div class="dtl-sales">128</div><div class="dtl-detail">SG 75 · DICE 53</div><div class="dtl-accum">Acc. 6,103</div></div><div class="dtl-center"><div class="dtl-diff pos">+265</div><div class="dtl-pct">+207.0%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 15 Jan</div><div class="dtl-sales">393</div><div class="dtl-detail">SG 221 · DICE 172</div><div class="dtl-accum">Acc. 14,816</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 17 Jan</div><div class="dtl-sales">111</div><div class="dtl-detail">SG 87 · DICE 24</div><div class="dtl-accum">Acc. 6,214</div></div><div class="dtl-center"><div class="dtl-diff pos">+122</div><div class="dtl-pct">+109.9%</div></div><div class="dtl-right"><div class="dtl-date">Ven 16 Jan</div><div class="dtl-sales">233</div><div class="dtl-detail">SG 166 · DICE 67</div><div class="dtl-accum">Acc. 15,049</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 18 Jan</div><div class="dtl-sales">114</div><div class="dtl-detail">SG 80 · DICE 34</div><div class="dtl-accum">Acc. 6,328</div></div><div class="dtl-center"><div class="dtl-diff pos">+150</div><div class="dtl-pct">+131.6%</div></div><div class="dtl-right"><div class="dtl-date">Sam 17 Jan</div><div class="dtl-sales">264</div><div class="dtl-detail">SG 190 · DICE 74</div><div class="dtl-accum">Acc. 15,313</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 19 Jan</div><div class="dtl-sales">100</div><div class="dtl-detail">SG 72 · DICE 28</div><div class="dtl-accum">Acc. 6,428</div></div><div class="dtl-center"><div class="dtl-diff pos">+105</div><div class="dtl-pct">+105.0%</div></div><div class="dtl-right"><div class="dtl-date">Dim 18 Jan</div><div class="dtl-sales">205</div><div class="dtl-detail">SG 128 · DICE 77</div><div class="dtl-accum">Acc. 15,518</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 20 Jan</div><div class="dtl-sales">67</div><div class="dtl-detail">SG 52 · DICE 15</div><div class="dtl-accum">Acc. 6,495</div></div><div class="dtl-center"><div class="dtl-diff pos">+139</div><div class="dtl-pct">+207.5%</div></div><div class="dtl-right"><div class="dtl-date">Lun 19 Jan</div><div class="dtl-sales">206</div><div class="dtl-detail">SG 146 · DICE 60</div><div class="dtl-accum">Acc. 15,724</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 21 Jan</div><div class="dtl-sales">95</div><div class="dtl-detail">SG 75 · DICE 20</div><div class="dtl-accum">Acc. 6,590</div></div><div class="dtl-center"><div class="dtl-diff pos">+88</div><div class="dtl-pct">+92.6%</div></div><div class="dtl-right"><div class="dtl-date">Mar 20 Jan</div><div class="dtl-sales">183</div><div class="dtl-detail">SG 128 · DICE 55</div><div class="dtl-accum">Acc. 15,907</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 22 Jan</div><div class="dtl-sales">69</div><div class="dtl-detail">SG 47 · DICE 22</div><div class="dtl-accum">Acc. 6,659</div></div><div class="dtl-center"><div class="dtl-diff pos">+97</div><div class="dtl-pct">+140.6%</div></div><div class="dtl-right"><div class="dtl-date">Mer 21 Jan</div><div class="dtl-sales">166</div><div class="dtl-detail">SG 120 · DICE 46</div><div class="dtl-accum">Acc. 16,073</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 23 Jan</div><div class="dtl-sales">94</div><div class="dtl-detail">SG 75 · DICE 19</div><div class="dtl-accum">Acc. 6,753</div></div><div class="dtl-center"><div class="dtl-diff pos">+85</div><div class="dtl-pct">+90.4%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 22 Jan</div><div class="dtl-sales">179</div><div class="dtl-detail">SG 127 · DICE 52</div><div class="dtl-accum">Acc. 16,252</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 24 Jan</div><div class="dtl-sales">80</div><div class="dtl-detail">SG 65 · DICE 15</div><div class="dtl-accum">Acc. 6,833</div></div><div class="dtl-center"><div class="dtl-diff pos">+125</div><div class="dtl-pct">+156.2%</div></div><div class="dtl-right"><div class="dtl-date">Ven 23 Jan</div><div class="dtl-sales">205</div><div class="dtl-detail">SG 153 · DICE 52</div><div class="dtl-accum">Acc. 16,457</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 25 Jan</div><div class="dtl-sales">90</div><div class="dtl-detail">SG 65 · DICE 25</div><div class="dtl-accum">Acc. 6,923</div></div><div class="dtl-center"><div class="dtl-diff pos">+134</div><div class="dtl-pct">+148.9%</div></div><div class="dtl-right"><div class="dtl-date">Sam 24 Jan</div><div class="dtl-sales">224</div><div class="dtl-detail">SG 161 · DICE 63</div><div class="dtl-accum">Acc. 16,681</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 26 Jan</div><div class="dtl-sales">85</div><div class="dtl-detail">SG 58 · DICE 27</div><div class="dtl-accum">Acc. 7,008</div></div><div class="dtl-center"><div class="dtl-diff pos">+83</div><div class="dtl-pct">+97.6%</div></div><div class="dtl-right"><div class="dtl-date">Dim 25 Jan</div><div class="dtl-sales">168</div><div class="dtl-detail">SG 114 · DICE 54</div><div class="dtl-accum">Acc. 16,849</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 27 Jan</div><div class="dtl-sales">116</div><div class="dtl-detail">SG 92 · DICE 24</div><div class="dtl-accum">Acc. 7,124</div></div><div class="dtl-center"><div class="dtl-diff pos">+49</div><div class="dtl-pct">+42.2%</div></div><div class="dtl-right"><div class="dtl-date">Lun 26 Jan</div><div class="dtl-sales">165</div><div class="dtl-detail">SG 111 · DICE 54</div><div class="dtl-accum">Acc. 17,014</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 28 Jan</div><div class="dtl-sales">97</div><div class="dtl-detail">SG 80 · DICE 17</div><div class="dtl-accum">Acc. 7,221</div></div><div class="dtl-center"><div class="dtl-diff pos">+101</div><div class="dtl-pct">+104.1%</div></div><div class="dtl-right"><div class="dtl-date">Mar 27 Jan</div><div class="dtl-sales">198</div><div class="dtl-detail">SG 136 · DICE 62</div><div class="dtl-accum">Acc. 17,212</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 29 Jan</div><div class="dtl-sales">143</div><div class="dtl-detail">SG 112 · DICE 31</div><div class="dtl-accum">Acc. 7,364</div></div><div class="dtl-center"><div class="dtl-diff pos">+100</div><div class="dtl-pct">+69.9%</div></div><div class="dtl-right"><div class="dtl-date">Mer 28 Jan</div><div class="dtl-sales">243</div><div class="dtl-detail">SG 176 · DICE 67</div><div class="dtl-accum">Acc. 17,455</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 30 Jan</div><div class="dtl-sales">212</div><div class="dtl-detail">SG 164 · DICE 48</div><div class="dtl-accum">Acc. 7,576</div></div><div class="dtl-center"><div class="dtl-diff pos">+130</div><div class="dtl-pct">+61.3%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 29 Jan</div><div class="dtl-sales">342</div><div class="dtl-detail">SG 246 · DICE 96</div><div class="dtl-accum">Acc. 17,797</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 31 Jan</div><div class="dtl-sales">165</div><div class="dtl-detail">SG 124 · DICE 41</div><div class="dtl-accum">Acc. 7,741</div></div><div class="dtl-center"><div class="dtl-diff pos">+222</div><div class="dtl-pct">+134.5%</div></div><div class="dtl-right"><div class="dtl-date">Ven 30 Jan</div><div class="dtl-sales">387</div><div class="dtl-detail">SG 262 · DICE 125</div><div class="dtl-accum">Acc. 18,184</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 1 Fév</div><div class="dtl-sales">170</div><div class="dtl-detail">SG 128 · DICE 42</div><div class="dtl-accum">Acc. 7,911</div></div><div class="dtl-center"><div class="dtl-diff pos">+169</div><div class="dtl-pct">+99.4%</div></div><div class="dtl-right"><div class="dtl-date">Sam 31 Jan</div><div class="dtl-sales">339</div><div class="dtl-detail">SG 231 · DICE 108</div><div class="dtl-accum">Acc. 18,523</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 2 Fév</div><div class="dtl-sales">189</div><div class="dtl-detail">SG 128 · DICE 61</div><div class="dtl-accum">Acc. 8,100</div></div><div class="dtl-center"><div class="dtl-diff pos">+253</div><div class="dtl-pct">+133.9%</div></div><div class="dtl-right"><div class="dtl-date">Dim 1 Fév</div><div class="dtl-sales">442</div><div class="dtl-detail">SG 301 · DICE 141</div><div class="dtl-accum">Acc. 18,965</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 3 Fév</div><div class="dtl-sales">135</div><div class="dtl-detail">SG 90 · DICE 45</div><div class="dtl-accum">Acc. 8,235</div></div><div class="dtl-center"><div class="dtl-diff pos">+310</div><div class="dtl-pct">+229.6%</div></div><div class="dtl-right"><div class="dtl-date">Lun 2 Fév</div><div class="dtl-sales">445</div><div class="dtl-detail">SG 312 · DICE 133</div><div class="dtl-accum">Acc. 19,410</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 4 Fév</div><div class="dtl-sales">164</div><div class="dtl-detail">SG 130 · DICE 34</div><div class="dtl-accum">Acc. 8,399</div></div><div class="dtl-center"><div class="dtl-diff pos">+217</div><div class="dtl-pct">+132.3%</div></div><div class="dtl-right"><div class="dtl-date">Mar 3 Fév</div><div class="dtl-sales">381</div><div class="dtl-detail">SG 262 · DICE 119</div><div class="dtl-accum">Acc. 19,791</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 5 Fév</div><div class="dtl-sales">154</div><div class="dtl-detail">SG 119 · DICE 35</div><div class="dtl-accum">Acc. 8,553</div></div><div class="dtl-center"><div class="dtl-diff pos">+244</div><div class="dtl-pct">+158.4%</div></div><div class="dtl-right"><div class="dtl-date">Mer 4 Fév</div><div class="dtl-sales">398</div><div class="dtl-detail">SG 263 · DICE 135</div><div class="dtl-accum">Acc. 20,189</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 6 Fév</div><div class="dtl-sales">182</div><div class="dtl-detail">SG 140 · DICE 42</div><div class="dtl-accum">Acc. 8,735</div></div><div class="dtl-center"><div class="dtl-diff pos">+266</div><div class="dtl-pct">+146.2%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 5 Fév</div><div class="dtl-sales">448</div><div class="dtl-detail">SG 312 · DICE 136</div><div class="dtl-accum">Acc. 20,637</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 7 Fév</div><div class="dtl-sales">217</div><div class="dtl-detail">SG 169 · DICE 48</div><div class="dtl-accum">Acc. 8,952</div></div><div class="dtl-center"><div class="dtl-diff pos">+114</div><div class="dtl-pct">+52.5%</div></div><div class="dtl-right"><div class="dtl-date">Ven 6 Fév</div><div class="dtl-sales">331</div><div class="dtl-detail">SG 240 · DICE 91</div><div class="dtl-accum">Acc. 20,968</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 8 Fév</div><div class="dtl-sales">197</div><div class="dtl-detail">SG 154 · DICE 43</div><div class="dtl-accum">Acc. 9,149</div></div><div class="dtl-center"><div class="dtl-diff pos">+79</div><div class="dtl-pct">+40.1%</div></div><div class="dtl-right"><div class="dtl-date">Sam 7 Fév</div><div class="dtl-sales">276</div><div class="dtl-detail">SG 207 · DICE 69</div><div class="dtl-accum">Acc. 21,244</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 9 Fév</div><div class="dtl-sales">198</div><div class="dtl-detail">SG 150 · DICE 48</div><div class="dtl-accum">Acc. 9,347</div></div><div class="dtl-center"><div class="dtl-diff pos">+75</div><div class="dtl-pct">+37.9%</div></div><div class="dtl-right"><div class="dtl-date">Dim 8 Fév</div><div class="dtl-sales">273</div><div class="dtl-detail">SG 195 · DICE 78</div><div class="dtl-accum">Acc. 21,517</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 10 Fév</div><div class="dtl-sales">189</div><div class="dtl-detail">SG 161 · DICE 28</div><div class="dtl-accum">Acc. 9,536</div></div><div class="dtl-center"><div class="dtl-diff pos">+85</div><div class="dtl-pct">+45.0%</div></div><div class="dtl-right"><div class="dtl-date">Lun 9 Fév</div><div class="dtl-sales">274</div><div class="dtl-detail">SG 186 · DICE 88</div><div class="dtl-accum">Acc. 21,791</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 11 Fév</div><div class="dtl-sales">238</div><div class="dtl-detail">SG 201 · DICE 37</div><div class="dtl-accum">Acc. 9,774</div></div><div class="dtl-center"><div class="dtl-diff pos">+59</div><div class="dtl-pct">+24.8%</div></div><div class="dtl-right"><div class="dtl-date">Mar 10 Fév</div><div class="dtl-sales">297</div><div class="dtl-detail">SG 212 · DICE 85</div><div class="dtl-accum">Acc. 22,088</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 12 Fév</div><div class="dtl-sales">217</div><div class="dtl-detail">SG 181 · DICE 36</div><div class="dtl-accum">Acc. 9,991</div></div><div class="dtl-center"><div class="dtl-diff pos">+75</div><div class="dtl-pct">+34.6%</div></div><div class="dtl-right"><div class="dtl-date">Mer 11 Fév</div><div class="dtl-sales">292</div><div class="dtl-detail">SG 225 · DICE 67</div><div class="dtl-accum">Acc. 22,380</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 13 Fév</div><div class="dtl-sales">173</div><div class="dtl-detail">SG 147 · DICE 26</div><div class="dtl-accum">Acc. 10,164</div></div><div class="dtl-center"><div class="dtl-diff pos">+104</div><div class="dtl-pct">+60.1%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 12 Fév</div><div class="dtl-sales">277</div><div class="dtl-detail">SG 217 · DICE 60</div><div class="dtl-accum">Acc. 22,657</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 14 Fév</div><div class="dtl-sales">195</div><div class="dtl-detail">SG 175 · DICE 20</div><div class="dtl-accum">Acc. 10,359</div></div><div class="dtl-center"><div class="dtl-diff pos">+70</div><div class="dtl-pct">+35.9%</div></div><div class="dtl-right"><div class="dtl-date">Ven 13 Fév</div><div class="dtl-sales">265</div><div class="dtl-detail">SG 202 · DICE 63</div><div class="dtl-accum">Acc. 22,922</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 15 Fév</div><div class="dtl-sales">223</div><div class="dtl-detail">SG 183 · DICE 40</div><div class="dtl-accum">Acc. 10,582</div></div><div class="dtl-center"><div class="dtl-diff neg">-8</div><div class="dtl-pct">-3.6%</div></div><div class="dtl-right"><div class="dtl-date">Sam 14 Fév</div><div class="dtl-sales">215</div><div class="dtl-detail">SG 173 · DICE 42</div><div class="dtl-accum">Acc. 23,137</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 16 Fév</div><div class="dtl-sales">159</div><div class="dtl-detail">SG 140 · DICE 19</div><div class="dtl-accum">Acc. 10,741</div></div><div class="dtl-center"><div class="dtl-diff pos">+64</div><div class="dtl-pct">+40.3%</div></div><div class="dtl-right"><div class="dtl-date">Dim 15 Fév</div><div class="dtl-sales">223</div><div class="dtl-detail">SG 174 · DICE 49</div><div class="dtl-accum">Acc. 23,360</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 17 Fév</div><div class="dtl-sales">164</div><div class="dtl-detail">SG 137 · DICE 27</div><div class="dtl-accum">Acc. 10,905</div></div><div class="dtl-center"><div class="dtl-diff pos">+123</div><div class="dtl-pct">+75.0%</div></div><div class="dtl-right"><div class="dtl-date">Lun 16 Fév</div><div class="dtl-sales">287</div><div class="dtl-detail">SG 216 · DICE 71</div><div class="dtl-accum">Acc. 23,647</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 18 Fév</div><div class="dtl-sales">205</div><div class="dtl-detail">SG 183 · DICE 22</div><div class="dtl-accum">Acc. 11,110</div></div><div class="dtl-center"><div class="dtl-diff pos">+16</div><div class="dtl-pct">+7.8%</div></div><div class="dtl-right"><div class="dtl-date">Mar 17 Fév</div><div class="dtl-sales">221</div><div class="dtl-detail">SG 172 · DICE 49</div><div class="dtl-accum">Acc. 23,868</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 19 Fév</div><div class="dtl-sales">190</div><div class="dtl-detail">SG 165 · DICE 25</div><div class="dtl-accum">Acc. 11,300</div></div><div class="dtl-center"><div class="dtl-diff pos">+76</div><div class="dtl-pct">+40.0%</div></div><div class="dtl-right"><div class="dtl-date">Mer 18 Fév</div><div class="dtl-sales">266</div><div class="dtl-detail">SG 205 · DICE 61</div><div class="dtl-accum">Acc. 24,134</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 20 Fév</div><div class="dtl-sales">192</div><div class="dtl-detail">SG 176 · DICE 16</div><div class="dtl-accum">Acc. 11,492</div></div><div class="dtl-center"><div class="dtl-diff pos">+41</div><div class="dtl-pct">+21.4%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 19 Fév</div><div class="dtl-sales">233</div><div class="dtl-detail">SG 163 · DICE 70</div><div class="dtl-accum">Acc. 24,367</div></div></div>
+        </div><div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Ven 21 Fév</div><div class="dtl-sales">202</div><div class="dtl-detail">SG 184 · DICE 18</div><div class="dtl-accum">Acc. 11,694</div></div><div class="dtl-center"><div class="dtl-diff pos">+79</div><div class="dtl-pct">+39.1%</div></div><div class="dtl-right"><div class="dtl-date">Ven 20 Fév</div><div class="dtl-sales">281</div><div class="dtl-detail">SG 200 · DICE 81</div><div class="dtl-accum">Acc. 24,648</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Sam 22 Fév</div><div class="dtl-sales">208</div><div class="dtl-detail">SG 183 · DICE 25</div><div class="dtl-accum">Acc. 11,902</div></div><div class="dtl-center"><div class="dtl-diff pos">+18</div><div class="dtl-pct">+8.7%</div></div><div class="dtl-right"><div class="dtl-date">Sam 21 Fév</div><div class="dtl-sales">226</div><div class="dtl-detail">SG 165 · DICE 61</div><div class="dtl-accum">Acc. 24,874</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Dim 23 Fév</div><div class="dtl-sales">175</div><div class="dtl-detail">SG 152 · DICE 23</div><div class="dtl-accum">Acc. 12,077</div></div><div class="dtl-center"><div class="dtl-diff pos">+75</div><div class="dtl-pct">+42.9%</div></div><div class="dtl-right"><div class="dtl-date">Dim 22 Fév</div><div class="dtl-sales">250</div><div class="dtl-detail">SG 168 · DICE 82</div><div class="dtl-accum">Acc. 25,124</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Lun 24 Fév</div><div class="dtl-sales">195</div><div class="dtl-detail">SG 174 · DICE 21</div><div class="dtl-accum">Acc. 12,272</div></div><div class="dtl-center"><div class="dtl-diff pos">+47</div><div class="dtl-pct">+24.1%</div></div><div class="dtl-right"><div class="dtl-date">Lun 23 Fév</div><div class="dtl-sales">242</div><div class="dtl-detail">SG 162 · DICE 80</div><div class="dtl-accum">Acc. 25,366</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mar 25 Fév</div><div class="dtl-sales">219</div><div class="dtl-detail">SG 183 · DICE 36</div><div class="dtl-accum">Acc. 12,491</div></div><div class="dtl-center"><div class="dtl-diff pos">+53</div><div class="dtl-pct">+24.2%</div></div><div class="dtl-right"><div class="dtl-date">Mar 24 Fév</div><div class="dtl-sales">272</div><div class="dtl-detail">SG 198 · DICE 74</div><div class="dtl-accum">Acc. 25,638</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Mer 26 Fév</div><div class="dtl-sales">282</div><div class="dtl-detail">SG 244 · DICE 38</div><div class="dtl-accum">Acc. 12,773</div></div><div class="dtl-center"><div class="dtl-diff pos">+42</div><div class="dtl-pct">+14.9%</div></div><div class="dtl-right"><div class="dtl-date">Mer 25 Fév</div><div class="dtl-sales">324</div><div class="dtl-detail">SG 253 · DICE 71</div><div class="dtl-accum">Acc. 25,962</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">Jeu 27 Fév</div><div class="dtl-sales">283</div><div class="dtl-detail">SG 239 · DICE 44</div><div class="dtl-accum">Acc. 13,056</div></div><div class="dtl-center"><div class="dtl-diff pos">+56</div><div class="dtl-pct">+19.8%</div></div><div class="dtl-right"><div class="dtl-date">Jeu 26 Fév</div><div class="dtl-sales">339</div><div class="dtl-detail">SG 240 · DICE 99</div><div class="dtl-accum">Acc. 26,301</div></div></div>
+        <div class="dtl-row today" style="border:1px solid var(--amber);border-radius:8px;margin:6px 0;padding:2px 0"><div class="dtl-left"><div class="dtl-date">Ven 28 Fév</div><div class="dtl-sales">322</div><div class="dtl-detail">SG 295 · DICE 27</div><div class="dtl-accum">Acc. 13,378</div></div><div class="dtl-center"><div class="dtl-diff neg">-155</div><div class="dtl-pct" style="font-size:0.7em;color:var(--amber)">en cours</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--amber)">Aujourd'hui</div><div class="dtl-sales" style="color:var(--amber)">167</div><div class="dtl-detail">SG 117 · DICE 50</div><div class="dtl-accum">Acc. 26,468</div></div></div>
+        <div class="dtl-cutoff"><div class="dtl-cutoff-line"></div><div class="dtl-cutoff-label">À venir</div><div class="dtl-cutoff-line"></div></div>
+        <div id="suivi-future-days" style="display:none;max-height:400px;overflow-y:auto">
+        <div class="dtl-col-labels" style="margin-top:8px"><div class="dtl-col-label">2025 (référence)</div><div class="dtl-col-label center">J-X</div><div class="dtl-col-label right">2026 (à venir)</div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Sam 1 Mar</div><div class="dtl-sales">318</div><div class="dtl-detail">SG 276 · DICE 42</div><div class="dtl-accum">Acc. 13,696</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-13</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Sam 28 Fév</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Dim 2 Mar</div><div class="dtl-sales">287</div><div class="dtl-detail">SG 246 · DICE 41</div><div class="dtl-accum">Acc. 13,983</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-12</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Dim 1 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Lun 3 Mar</div><div class="dtl-sales">304</div><div class="dtl-detail">SG 259 · DICE 45</div><div class="dtl-accum">Acc. 14,287</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-11</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Lun 2 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Mar 4 Mar</div><div class="dtl-sales">373</div><div class="dtl-detail">SG 327 · DICE 46</div><div class="dtl-accum">Acc. 14,660</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-10</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Mar 3 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Mer 5 Mar</div><div class="dtl-sales">344</div><div class="dtl-detail">SG 299 · DICE 45</div><div class="dtl-accum">Acc. 15,004</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-9</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Mer 4 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Jeu 6 Mar</div><div class="dtl-sales">332</div><div class="dtl-detail">SG 284 · DICE 48</div><div class="dtl-accum">Acc. 15,336</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-8</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Jeu 5 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Ven 7 Mar</div><div class="dtl-sales">324</div><div class="dtl-detail">SG 279 · DICE 45</div><div class="dtl-accum">Acc. 15,660</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-7</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Ven 6 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Sam 8 Mar</div><div class="dtl-sales">322</div><div class="dtl-detail">SG 269 · DICE 53</div><div class="dtl-accum">Acc. 15,982</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-6</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Sam 7 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Dim 9 Mar</div><div class="dtl-sales">335</div><div class="dtl-detail">SG 273 · DICE 62</div><div class="dtl-accum">Acc. 16,317</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-5</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Dim 8 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Lun 10 Mar</div><div class="dtl-sales">402</div><div class="dtl-detail">SG 369 · DICE 33</div><div class="dtl-accum">Acc. 16,719</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-4</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Lun 9 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Mar 11 Mar</div><div class="dtl-sales">468</div><div class="dtl-detail">SG 428 · DICE 40</div><div class="dtl-accum">Acc. 17,187</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-3</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Mar 10 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Mer 12 Mar</div><div class="dtl-sales">435</div><div class="dtl-detail">SG 389 · DICE 46</div><div class="dtl-accum">Acc. 17,622</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-2</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Mer 11 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Jeu 13 Mar</div><div class="dtl-sales">479</div><div class="dtl-detail">SG 435 · DICE 44</div><div class="dtl-accum">Acc. 18,101</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-1</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Jeu 12 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Ven 14 Mar</div><div class="dtl-sales">938</div><div class="dtl-detail">SG 909 · DICE 29</div><div class="dtl-accum">Acc. 19,039</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J-0</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Ven 13 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">Sam 15 Mar</div><div class="dtl-sales">914</div><div class="dtl-detail">SG 859 · DICE 55</div><div class="dtl-accum">Acc. 19,953</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">J+1</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">Sam 14 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        </div>
+        <button class="show-more-btn" id="suivi-day-toggle"  onclick="var h=document.getElementById('suivi-future-days');if(h){if(h.style.display==='none'){h.style.display='block';this.textContent='Masquer les jours restants'}else{h.style.display='none';this.textContent='Voir les 15 jours restants'}}">Voir les 15 jours restants</button>
+    </div>
+    <div id="suivi-semaine" class="hidden">
+        <div class="dtl-col-labels"><div class="dtl-col-label">2025</div><div class="dtl-col-label center">Diff</div><div class="dtl-col-label right">2026</div></div>
+        <button class="show-more-btn" onclick="var h=document.getElementById('suivi-hidden-weeks');if(h){if(h.style.display==='none'){h.style.display='block';this.textContent='Masquer les semaines anciennes'}else{h.style.display='none';this.textContent='Voir les 7 semaines précédentes'}}">Voir les 7 semaines précédentes</button>
+        <div id="suivi-hidden-weeks" style="display:none">
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-14 · 06–12 Déc</div><div class="dtl-sales">1107</div><div class="dtl-detail">SG 1107 · DICE 0</div><div class="dtl-accum">€59k</div></div><div class="dtl-center"><div class="dtl-diff pos">+6198</div><div class="dtl-pct">+559.9%</div></div><div class="dtl-right"><div class="dtl-date">S-14 · 05–11 Déc</div><div class="dtl-sales">7305</div><div class="dtl-detail">SG 3736 · DICE 3569</div><div class="dtl-accum">€475k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-13 · 13–19 Déc</div><div class="dtl-sales">416</div><div class="dtl-detail">SG 416 · DICE 0</div><div class="dtl-accum">€21k</div></div><div class="dtl-center"><div class="dtl-diff pos">+1453</div><div class="dtl-pct">+349.3%</div></div><div class="dtl-right"><div class="dtl-date">S-13 · 12–18 Déc</div><div class="dtl-sales">1869</div><div class="dtl-detail">SG 1041 · DICE 828</div><div class="dtl-accum">€117k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-12 · 20–26 Déc</div><div class="dtl-sales">1880</div><div class="dtl-detail">SG 261 · DICE 1619</div><div class="dtl-accum">€128k</div></div><div class="dtl-center"><div class="dtl-diff neg">-721</div><div class="dtl-pct">-38.4%</div></div><div class="dtl-right"><div class="dtl-date">S-12 · 19–25 Déc</div><div class="dtl-sales">1159</div><div class="dtl-detail">SG 637 · DICE 522</div><div class="dtl-accum">€75k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-11 · 27 Déc–02 Jan</div><div class="dtl-sales">810</div><div class="dtl-detail">SG 178 · DICE 632</div><div class="dtl-accum">€50k</div></div><div class="dtl-center"><div class="dtl-diff pos">+60</div><div class="dtl-pct">+7.4%</div></div><div class="dtl-right"><div class="dtl-date">S-11 · 26 Déc–01 Jan</div><div class="dtl-sales">870</div><div class="dtl-detail">SG 502 · DICE 368</div><div class="dtl-accum">€56k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-10 · 03–09 Jan</div><div class="dtl-sales">585</div><div class="dtl-detail">SG 260 · DICE 325</div><div class="dtl-accum">€35k</div></div><div class="dtl-center"><div class="dtl-diff pos">+231</div><div class="dtl-pct">+39.5%</div></div><div class="dtl-right"><div class="dtl-date">S-10 · 02–08 Jan</div><div class="dtl-sales">816</div><div class="dtl-detail">SG 511 · DICE 305</div><div class="dtl-accum">€51k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-9 · 10–16 Jan</div><div class="dtl-sales">742</div><div class="dtl-detail">SG 463 · DICE 279</div><div class="dtl-accum">€47k</div></div><div class="dtl-center"><div class="dtl-diff pos">+501</div><div class="dtl-pct">+67.5%</div></div><div class="dtl-right"><div class="dtl-date">S-9 · 09–15 Jan</div><div class="dtl-sales">1243</div><div class="dtl-detail">SG 791 · DICE 452</div><div class="dtl-accum">€81k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-8 · 17–23 Jan</div><div class="dtl-sales">674</div><div class="dtl-detail">SG 458 · DICE 216</div><div class="dtl-accum">€41k</div></div><div class="dtl-center"><div class="dtl-diff pos">+1113</div><div class="dtl-pct">+165.1%</div></div><div class="dtl-right"><div class="dtl-date">S-8 · 16–22 Jan</div><div class="dtl-sales">1787</div><div class="dtl-detail">SG 1089 · DICE 698</div><div class="dtl-accum">€117k</div></div></div>
+        </div><div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-7 · 24–30 Jan</div><div class="dtl-sales">619</div><div class="dtl-detail">SG 466 · DICE 153</div><div class="dtl-accum">€37k</div></div><div class="dtl-center"><div class="dtl-diff pos">+789</div><div class="dtl-pct">+127.5%</div></div><div class="dtl-right"><div class="dtl-date">S-7 · 23–29 Jan</div><div class="dtl-sales">1408</div><div class="dtl-detail">SG 992 · DICE 416</div><div class="dtl-accum">€92k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-6 · 31 Jan–06 Fév</div><div class="dtl-sales">908</div><div class="dtl-detail">SG 695 · DICE 213</div><div class="dtl-accum">€54k</div></div><div class="dtl-center"><div class="dtl-diff pos">+819</div><div class="dtl-pct">+90.2%</div></div><div class="dtl-right"><div class="dtl-date">S-6 · 30 Jan–05 Fév</div><div class="dtl-sales">1727</div><div class="dtl-detail">SG 1206 · DICE 521</div><div class="dtl-accum">€115k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-5 · 07–13 Fév</div><div class="dtl-sales">1211</div><div class="dtl-detail">SG 904 · DICE 307</div><div class="dtl-accum">€73k</div></div><div class="dtl-center"><div class="dtl-diff pos">+1573</div><div class="dtl-pct">+129.9%</div></div><div class="dtl-right"><div class="dtl-date">S-5 · 06–12 Fév</div><div class="dtl-sales">2784</div><div class="dtl-detail">SG 1921 · DICE 863</div><div class="dtl-accum">€185k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-4 · 14–20 Fév</div><div class="dtl-sales">1407</div><div class="dtl-detail">SG 1169 · DICE 238</div><div class="dtl-accum">€81k</div></div><div class="dtl-center"><div class="dtl-diff pos">+547</div><div class="dtl-pct">+38.9%</div></div><div class="dtl-right"><div class="dtl-date">S-4 · 13–19 Fév</div><div class="dtl-sales">1954</div><div class="dtl-detail">SG 1444 · DICE 510</div><div class="dtl-accum">€133k</div></div></div>
+        <div class="dtl-row"><div class="dtl-left"><div class="dtl-date">S-3 · 21–27 Fév</div><div class="dtl-sales">1335</div><div class="dtl-detail">SG 1168 · DICE 167</div><div class="dtl-accum">€74k</div></div><div class="dtl-center"><div class="dtl-diff pos">+391</div><div class="dtl-pct">+29.3%</div></div><div class="dtl-right"><div class="dtl-date">S-3 · 20–26 Fév</div><div class="dtl-sales">1726</div><div class="dtl-detail">SG 1303 · DICE 423</div><div class="dtl-accum">€123k</div></div></div>
+        <div class="dtl-row today" style="border:1px solid var(--amber);border-radius:8px;margin:2px 0;padding:2px 0"><div class="dtl-left"><div class="dtl-date">S-2 · 28 Fév–06 Mar</div><div class="dtl-sales">1684</div><div class="dtl-detail">SG 1470 · DICE 214</div><div class="dtl-accum">€98k</div></div><div class="dtl-center"><div class="dtl-diff pos">+136</div><div class="dtl-pct" style="color:var(--amber)">en cours</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--amber)">S-2 · 27 Fév–05 Mar · en cours</div><div class="dtl-sales" style="color:var(--amber)">1820</div><div class="dtl-detail">SG 1303 · DICE 517</div><div class="dtl-accum">€126k</div></div></div>
+        <div class="dtl-cutoff"><div class="dtl-cutoff-line"></div><div class="dtl-cutoff-label">À venir</div><div class="dtl-cutoff-line"></div></div>
+        <div id="suivi-future-weeks" style="display:none;max-height:300px;overflow-y:auto">
+        <div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">S-1 · 07–13 Mar</div><div class="dtl-sales">2282</div><div class="dtl-detail">SG 1970 · DICE 312</div><div class="dtl-accum">€138k</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">S-1</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">S-1 · 06–12 Mar</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>
+        </div>
+        <button class="show-more-btn" id="suivi-week-toggle"  onclick="var h=document.getElementById('suivi-future-weeks');if(h){if(h.style.display==='none'){h.style.display='block';this.textContent='Masquer les semaines restantes'}else{h.style.display='none';this.textContent='Voir les 1 semaine restante'}}">Voir les 1 semaine restante</button>
+    </div>
+</div></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PROJECTION FINALE                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section-gap"><div class="card">
+    <div class="section-title">Projection Finale<span class="info-tip" style="font-size:0.5em">i<span class="info-bubble">Projection linéaire basée sur la vélocité des 14 derniers jours (billets payants). Voir l'onglet « Logique » pour le détail.</span></span></div>
+    <div class="proj-grid">
+        <div class="q-card"><div class="q-header"><span class="q-day-name" style="color:var(--day-0)">Vendredi</span><span class="q-pct" style="color:var(--day-0)">60.6% vendu</span></div><div class="q-current"><span class="q-current-num">13 024</span><span class="q-current-cap">/ 21 500</span></div><div class="q-bar"><div class="q-bar-fill" style="width:60.6%;background:var(--day-0)"></div></div><div class="q-scenarios"><div class="q-scenario-row"><div class="q-scenario-name"><span class="q-scenario-dot" style="background:#22d3ee"></span><span class="q-scenario-sub">Trajectoire 2025</span></div><div class="q-scenario-nums"><span class="q-scenario-proj">15 189</span><span class="q-scenario-result" style="color:var(--text-muted)">71% de la capacité</span></div></div></div></div>
+        <div class="q-card"><div class="q-header"><span class="q-day-name" style="color:var(--day-1)">Samedi</span><span class="q-pct" style="color:var(--day-1)">88.4% vendu</span></div><div class="q-current"><span class="q-current-num">19 006</span><span class="q-current-cap">/ 21 500</span></div><div class="q-bar"><div class="q-bar-fill" style="width:88.4%;background:var(--day-1)"></div></div><div class="q-scenarios"><div class="q-scenario-row"><div class="q-scenario-name"><span class="q-scenario-dot" style="background:#22d3ee"></span><span class="q-scenario-sub">Trajectoire 2025</span></div><div class="q-scenario-nums"><span class="q-scenario-proj">21 500</span><span class="q-scenario-result" style="color:var(--green)">Sold out ~12 Mar</span></div></div></div></div>
+    </div>
+    <div class="chart-tabs">
+        <button class="chart-tab active" onclick="showProjTab('day0',this)">Vendredi</button><button class="chart-tab" onclick="showProjTab('day1',this)">Samedi</button>
+        <button class="chart-tab" onclick="showProjTab('logique',this)">Logique</button>
+    </div>
+    <div id="proj-day0"><div class="chart-subtitle">Vendredi — Courbe cumulative</div><div class="chart-canvas-wrap"><canvas id="chartDay0S1"></canvas></div><div class="chart-legend-custom"><div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Ventes 2026</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:#22d3ee"></div>Trajectoire 2025</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(239,68,68,0.5)"></div>2025</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(255,255,255,0.35)"></div>Capacité</div></div></div>
+    <div id="proj-day1" class="hidden"><div class="chart-subtitle">Samedi — Courbe cumulative</div><div class="chart-canvas-wrap"><canvas id="chartDay1S1"></canvas></div><div class="chart-legend-custom"><div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Ventes 2026</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:#22d3ee"></div>Trajectoire 2025</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(239,68,68,0.5)"></div>2025</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(255,255,255,0.35)"></div>Capacité</div></div></div>
+    <div id="proj-logique" class="hidden"><div class="proj-method"><strong>Méthodologie — Trajectoire 2025</strong><br><br>Projection basée sur la courbe de ventes 2025 de J-14 à J-1. La vélocité actuelle est multipliée semaine par semaine par le profil de ventes observé en 2025 à la même distance de l'événement.<br><br><strong>Vendredi:</strong> vel. 7j = 133.3/jour · Trajectoire 2025 (3 phases, ×1.0 → ×1.4) → 15 189 (71%)<br><strong>Samedi:</strong> vel. 7j = 169.3/jour · Trajectoire 2025 (3 phases, ×1.0 → ×1.4) → 21 500 (100%)<br><br><strong>Paramètres :</strong> billets payants uniquement · pass multi-jours = 1 entrée/jour · projections plafonnées à la capacité</div></div>
+</div></div>
+
+<div style="text-align:center;padding:30px 0 10px;font-size:0.6em;color:var(--text-dim)">Festiflow v1.0 · Données au 27 Février 2026</div>
+</div><!-- /dashboard -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script>
+function toggleDetails(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('open')}
+function toggleGroup(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('open')}
+function switchSuivi(v){document.getElementById('suivi-jour').classList.toggle('hidden',v!=='jour');document.getElementById('suivi-semaine').classList.toggle('hidden',v!=='semaine');document.querySelectorAll('.toggle-btn').forEach((b,i)=>b.classList.toggle('active',(v==='jour'&&i===0)||(v==='semaine'&&i===1)))}
+
+// ─── Dynamic projection tab switching ───
+var projDayIds = ['day0','day1']; // e.g. ['day0','day1'] or ['day0']
+var allProjIds = projDayIds.concat(['logique']);
+var dayTabClasses = {day0:'active',day1:'active-day1'}; // e.g. {day0:'active',day1:'active-day1'}
+
+function showProjTab(t,btn){
+    allProjIds.forEach(function(x){document.getElementById('proj-'+x).classList.toggle('hidden',x!==t)});
+    document.querySelectorAll('.chart-tab').forEach(function(b){b.className='chart-tab'});
+    var cls = dayTabClasses[t] || {logique:'active-logic'}[t] || 'active';
+    btn.classList.add(cls);
+    // Lazy-init S1 chart on first view
+    var s1Key = t+'S1';
+    if(window._projBuilders && window._projBuilders[s1Key] && !window['_built_'+s1Key]){
+        window._projBuilders[s1Key]();
+        window['_built_'+s1Key]=true;
+    }
+}
+
+function switchScenario(btn,dayIdx,scenario){/* no-op — single scenario mode */}
+
+Chart.defaults.color='rgba(255,255,255,0.3)';
+Chart.defaults.borderColor='rgba(255,255,255,0.04)';
+Chart.defaults.font.family="'DM Sans',system-ui";
+
+// ─── Velocity trend chart — lazy init on details open ───
+var velocityGapPlugin={id:'velocityGap',beforeDatasetsDraw:function(chart){
+  var meta0=chart.getDatasetMeta(0),meta1=chart.getDatasetMeta(1);
+  if(!meta0.data.length||!meta1.data.length)return;
+  var ctx=chart.ctx,pts26=meta0.data,pts25=meta1.data;
+  ctx.save();
+  for(var i=0;i<pts26.length-1;i++){
+    var x0=pts26[i].x,y26a=pts26[i].y,y25a=pts25[i].y;
+    var x1=pts26[i+1].x,y26b=pts26[i+1].y,y25b=pts25[i+1].y;
+    var d0=y25a-y26a,d1=y25b-y26b;
+    if(d0*d1<0){var t=d0/(d0-d1);var cx=x0+t*(x1-x0),cy=y26a+t*(y26b-y26a);ctx.beginPath();ctx.moveTo(x0,y26a);ctx.lineTo(cx,cy);ctx.lineTo(x0,y25a);ctx.closePath();ctx.fillStyle=d0>0?'rgba(52,211,153,0.12)':'rgba(248,113,113,0.12)';ctx.fill();ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x1,y26b);ctx.lineTo(x1,y25b);ctx.closePath();ctx.fillStyle=d1>0?'rgba(52,211,153,0.12)':'rgba(248,113,113,0.12)';ctx.fill()}
+    else{ctx.beginPath();ctx.moveTo(x0,y26a);ctx.lineTo(x1,y26b);ctx.lineTo(x1,y25b);ctx.lineTo(x0,y25a);ctx.closePath();ctx.fillStyle=d0>=0?'rgba(52,211,153,0.12)':'rgba(248,113,113,0.12)';ctx.fill()}
+  }ctx.restore()}};
+(function(){
+  var built=false;var canvas=document.getElementById('chartVelocity');if(!canvas)return;
+  var panel=canvas.closest('.details-panel');if(!panel)return;
+  new MutationObserver(function(){
+    if(!built&&panel.classList.contains('open')){built=true;setTimeout(function(){
+      new Chart(canvas,{type:'line',data:{labels:['S-16', 'S-15', 'S-14', 'S-13', 'S-12', 'S-11', 'S-10', 'S-9', 'S-8', 'S-7', 'S-6', 'S-5', 'S-4', 'S-3'],datasets:[
+          {label:'2026',data:[0.0, 992.6, 289.7, 171.7, 131.0, 110.3, 172.9, 248.4, 205.1, 220.7, 405.7, 288.6, 244.3, 276.3],borderColor:'#fbbf24',borderWidth:2.5,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#fbbf24',pointBorderColor:'#16161f',pointBorderWidth:2,tension:.4,fill:false},
+          {label:'2025',data:[0.0, 147.6, 64.0, 249.9, 130.0, 72.3, 109.7, 98.4, 92.9, 117.6, 165.6, 204.1, 189.7, 223.4],borderColor:'rgba(239,68,68,0.5)',borderWidth:1.5,borderDash:[5,4],pointRadius:3,pointHoverRadius:5,pointBackgroundColor:'rgba(239,68,68,0.5)',pointBorderColor:'#16161f',pointBorderWidth:1.5,tension:.4,fill:false}]},plugins:[velocityGapPlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(16,16,23,0.95)',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:12,titleFont:{size:11,weight:'600'},bodyFont:{size:11}}},scales:{x:{ticks:{font:{size:10},color:'rgba(255,255,255,0.3)'},grid:{display:false}},y:{min:0,ticks:{font:{size:10},color:'rgba(255,255,255,0.25)'},grid:{color:'rgba(255,255,255,0.03)'},title:{display:true,text:'/jour',font:{size:9},color:'rgba(255,255,255,0.2)'}}}
+      }});
+    },80)}
+  }).observe(panel,{attributes:true,attributeFilter:['class']});
+})();
+var vel14GapPlugin={id:'vel14Gap',beforeDatasetsDraw:function(chart){
+  var meta0=chart.getDatasetMeta(0),meta1=chart.getDatasetMeta(1);
+  if(!meta0.data.length||!meta1.data.length)return;
+  var ctx=chart.ctx,pts26=meta0.data,pts25=meta1.data;
+  ctx.save();
+  for(var i=0;i<pts26.length-1;i++){
+    var x0=pts26[i].x,y26a=pts26[i].y,y25a=pts25[i].y;
+    var x1=pts26[i+1].x,y26b=pts26[i+1].y,y25b=pts25[i+1].y;
+    var d0=y25a-y26a,d1=y25b-y26b;
+    if(d0*d1<0){var t=d0/(d0-d1);var cx=x0+t*(x1-x0),cy=y26a+t*(y26b-y26a);ctx.beginPath();ctx.moveTo(x0,y26a);ctx.lineTo(cx,cy);ctx.lineTo(x0,y25a);ctx.closePath();ctx.fillStyle=d0>0?'rgba(52,211,153,0.12)':'rgba(248,113,113,0.12)';ctx.fill();ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x1,y26b);ctx.lineTo(x1,y25b);ctx.closePath();ctx.fillStyle=d1>0?'rgba(52,211,153,0.12)':'rgba(248,113,113,0.12)';ctx.fill()}
+    else{ctx.beginPath();ctx.moveTo(x0,y26a);ctx.lineTo(x1,y26b);ctx.lineTo(x1,y25b);ctx.lineTo(x0,y25a);ctx.closePath();ctx.fillStyle=d0>=0?'rgba(52,211,153,0.12)':'rgba(248,113,113,0.12)';ctx.fill()}
+  }ctx.restore()}};
+(function(){
+  var built=false;var canvas=document.getElementById('chartVelocity14');if(!canvas)return;
+  var panel=canvas.closest('.details-panel');if(!panel)return;
+  new MutationObserver(function(){
+    if(!built&&panel.classList.contains('open')){built=true;setTimeout(function(){
+      new Chart(canvas,{type:'line',data:{labels:['S-16', 'S-15', 'S-14', 'S-13', 'S-12', 'S-11', 'S-10', 'S-9', 'S-8', 'S-7', 'S-6', 'S-5', 'S-4', 'S-3', 'S-2*'],datasets:[
+          {label:'2026',data:[0.0, 0.0, 521.8, 655.3, 216.3, 144.9, 120.4, 147.1, 216.4, 228.2, 223.9, 322.2, 338.4, 262.9, 259.9],borderColor:'#fbbf24',borderWidth:2.5,pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#fbbf24',pointBorderColor:'#16161f',pointBorderWidth:2,tension:.4,fill:false},
+          {label:'2025',data:[0.0, 0.0, 79.1, 108.8, 164.0, 192.1, 99.6, 94.8, 101.1, 92.4, 109.1, 151.4, 187.0, 195.9, 215.6],borderColor:'rgba(239,68,68,0.5)',borderWidth:1.5,borderDash:[5,4],pointRadius:3,pointHoverRadius:5,pointBackgroundColor:'rgba(239,68,68,0.5)',pointBorderColor:'#16161f',pointBorderWidth:1.5,tension:.4,fill:false}]},plugins:[vel14GapPlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(16,16,23,0.95)',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:12,titleFont:{size:11,weight:'600'},bodyFont:{size:11}}},scales:{x:{ticks:{font:{size:10},color:'rgba(255,255,255,0.3)'},grid:{display:false}},y:{min:0,ticks:{font:{size:10},color:'rgba(255,255,255,0.25)'},grid:{color:'rgba(255,255,255,0.03)'},title:{display:true,text:'/jour',font:{size:9},color:'rgba(255,255,255,0.2)'}}}
+      }});
+    },80)}
+  }).observe(panel,{attributes:true,attributeFilter:['class']});
+})();
+var revGapPlugin={id:'revGap',beforeDatasetsDraw:function(chart){
+  var meta0=chart.getDatasetMeta(0),meta1=chart.getDatasetMeta(1);
+  if(!meta0.data.length||!meta1.data.length)return;
+  var ctx=chart.ctx,pts26=meta0.data,pts25=meta1.data;
+  ctx.save();
+  for(var i=0;i<pts26.length-1;i++){
+    var p0=pts26[i],p1=pts26[i+1],q0=pts25[i],q1=pts25[i+1];
+    if(!p0||!p1||!q0||!q1)continue;
+    if(p0.skip||p1.skip||!isFinite(p0.y)||!isFinite(p1.y)||!isFinite(q0.y)||!isFinite(q1.y))continue;
+    var x0=p0.x,y26a=p0.y,y25a=q0.y,x1=p1.x,y26b=p1.y,y25b=q1.y;
+    var ahead=y26a-y25a;
+    ctx.beginPath();ctx.moveTo(x0,y26a);ctx.lineTo(x1,y26b);ctx.lineTo(x1,y25b);ctx.lineTo(x0,y25a);ctx.closePath();
+    ctx.fillStyle=ahead>=0?'rgba(52,211,153,0.18)':'rgba(248,113,113,0.18)';ctx.fill();
+  }ctx.restore()}};
+(function(){
+  var built=false;var canvas=document.getElementById('chartRevenue');if(!canvas)return;
+  var panel=canvas.closest('.details-panel');if(!panel)return;
+  new MutationObserver(function(){
+    if(!built&&panel.classList.contains('open')){built=true;setTimeout(function(){
+      new Chart(canvas,{type:'line',data:{labels:['S-14', 'S-13', 'S-12', 'S-11', 'S-10', 'S-9', 'S-8', 'S-7', 'S-6', 'S-5', 'S-4', 'S-3', 'S-2', 'S-1', 'Événement'],datasets:[
+          {label:'2026',data:[474771,591508,667008,723065,774111,855348,972418,1064218,1179176,1363871,1497131,1619805,null,null,null],borderColor:'#fbbf24',borderWidth:2.5,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#fbbf24',pointBorderColor:'#16161f',pointBorderWidth:2,tension:.4,fill:false,spanGaps:false},
+          {label:'2025',data:[59320,80570,208485,258831,293581,340369,381278,418101,472399,545178,626089,700299,797835,936164,1132398],borderColor:'rgba(239,68,68,0.5)',borderWidth:1.5,borderDash:[5,4],pointRadius:3,pointHoverRadius:5,pointBackgroundColor:'rgba(239,68,68,0.5)',pointBorderColor:'#16161f',pointBorderWidth:1.5,tension:.4,fill:false}]},plugins:[revGapPlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(16,16,23,0.95)',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:12,titleFont:{size:11,weight:'600'},bodyFont:{size:11},callbacks:{label:function(c){if(c.parsed.y==null)return null;return c.dataset.label+': €'+(c.parsed.y/1000).toFixed(0)+'k'}}}},scales:{x:{ticks:{font:{size:10},color:'rgba(255,255,255,0.3)',maxTicksLimit:8},grid:{display:false}},y:{ticks:{font:{size:10},color:'rgba(255,255,255,0.25)',callback:function(v){return '€'+(v/1000).toFixed(0)+'k'}},grid:{color:'rgba(255,255,255,0.03)'}}}}});
+    },80)}
+  }).observe(panel,{attributes:true,attributeFilter:['class']});
+})();
+
+// ─── Projection charts ───
+const N=86;
+const L=Array.from({length:102},(_,i)=>'J-'+(101-i));
+window._projBuilders = {};
+// Day 0 — built immediately
+new Chart(document.getElementById('chartDay0S1'),{type:'line',data:{labels:L,datasets:[{label:'Ventes 2026',data:[3073, 3757, 4014, 4176, 4361, 4530, 4659, 4767, 4894, 4983, 5089, 5171, 5236, 5309, 5398, 5470, 5521, 5578, 5628, 5675, 5710, 5764, 5812, 5865, 5922, 5953, 5993, 6035, 6077, 6124, 6165, 6228, 6292, 6354, 6444, 6511, 6600, 6667, 6722, 6798, 6863, 6964, 7032, 7214, 7393, 7486, 7588, 7672, 7772, 7828, 7906, 7968, 8033, 8096, 8149, 8200, 8296, 8400, 8586, 8791, 8949, 9163, 9387, 9608, 9795, 10041, 10203, 10350, 10482, 10621, 10776, 10933, 11060, 11186, 11290, 11405, 11524, 11631, 11761, 11872, 11999, 12095, 12215, 12329, 12451, 12630, 12805, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],borderColor:'#fbbf24',borderWidth:2.5,pointRadius:0,tension:.3,fill:false},{label:'Trajectoire 2025',data:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 13024, 13157, 13290, 13423, 13557, 13690, 13823, 13956, 14105, 14253, 14402, 14550, 14699, 14847, 14996, 15189],borderColor:'rgba(34,211,238,.8)',borderWidth:2,borderDash:[8,5],pointRadius:0,tension:.3,fill:false},{label:'2025',data:[412, 482, 517, 552, 589, 616, 650, 673, 695, 720, 736, 771, 792, 801, 832, 1860, 2043, 2161, 2315, 2390, 2470, 2562, 2606, 2666, 2720, 2770, 2819, 2841, 2887, 2917, 2975, 3062, 3152, 3209, 3274, 3321, 3377, 3442, 3529, 3613, 3656, 3693, 3736, 3778, 3852, 3935, 4005, 4057, 4103, 4160, 4210, 4262, 4306, 4351, 4400, 4470, 4525, 4607, 4751, 4858, 4966, 5078, 5166, 5278, 5390, 5494, 5646, 5784, 5925, 6047, 6205, 6342, 6453, 6577, 6700, 6803, 6902, 7030, 7154, 7270, 7406, 7529, 7654, 7784, 7931, 8102, 8274, 8493, 8705, 8860, 9069, 9299, 9509, 9721, 9904, 10074, 10262, 10510, 10812, 11076, 11367, 12115],borderColor:'rgba(239,68,68,.5)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:.3,fill:false}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},annotation:{annotations:{cap:{type:'line',yMin:21500,yMax:21500,borderColor:'rgba(255,255,255,0.35)',borderWidth:1.5,borderDash:[8,4]},now:{type:'line',xMin:N,xMax:N,borderColor:'rgba(255,255,255,0.2)',borderWidth:1,borderDash:[3,3]}}}},scales:{x:{ticks:{maxTicksLimit:7,font:{size:9},callback:(v,idx)=>idx%17===0?L[idx]:''},grid:{display:false}},y:{min:0,ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},grid:{color:'rgba(255,255,255,0.03)'}}}}});
+window._projBuilders['day1S1'] = function(){new Chart(document.getElementById('chartDay1S1'),{type:'line',data:{labels:L,datasets:[{label:'Ventes 2026',data:[4015, 4905, 5292, 5575, 5876, 6124, 6301, 6478, 6705, 6830, 6968, 7099, 7212, 7356, 7523, 7658, 7729, 7855, 7968, 8079, 8172, 8254, 8362, 8444, 8523, 8581, 8663, 8744, 8852, 8956, 9051, 9166, 9312, 9442, 9580, 9719, 9855, 9990, 10146, 10289, 10463, 10589, 10720, 11032, 11306, 11482, 11680, 11836, 11978, 12127, 12238, 12377, 12546, 12735, 12878, 13007, 13151, 13329, 13538, 13771, 13991, 14277, 14562, 14773, 15034, 15307, 15511, 15681, 15850, 16029, 16203, 16380, 16562, 16727, 16859, 17003, 17210, 17354, 17524, 17674, 17847, 17998, 18164, 18310, 18486, 18669, 18859, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],borderColor:'#fbbf24',borderWidth:2.5,pointRadius:0,tension:.3,fill:false},{label:'Trajectoire 2025',data:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 19006, 19175, 19344, 19513, 19683, 19852, 20021, 20190, 20392, 20594, 20795, 20997, 21198, 21400, 21500, 21500],borderColor:'rgba(34,211,238,.8)',borderWidth:2,borderDash:[8,5],pointRadius:0,tension:.3,fill:false},{label:'2025',data:[593, 684, 729, 779, 841, 893, 942, 974, 1000, 1042, 1072, 1113, 1130, 1137, 1154, 2276, 2492, 2622, 2785, 2893, 2991, 3060, 3109, 3163, 3222, 3287, 3336, 3374, 3424, 3471, 3554, 3665, 3759, 3828, 3908, 3961, 4031, 4094, 4156, 4228, 4298, 4360, 4397, 4445, 4524, 4579, 4648, 4705, 4741, 4794, 4840, 4900, 4947, 5009, 5058, 5125, 5179, 5267, 5375, 5474, 5556, 5673, 5751, 5834, 5909, 6015, 6122, 6205, 6292, 6387, 6492, 6601, 6692, 6786, 6913, 6985, 7073, 7168, 7251, 7341, 7425, 7531, 7603, 7692, 7808, 7954, 8098, 8237, 8382, 8549, 8686, 8868, 9046, 9220, 9392, 9578, 9772, 9955, 10151, 10346, 10562, 10777],borderColor:'rgba(239,68,68,.5)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:.3,fill:false}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},annotation:{annotations:{cap:{type:'line',yMin:21500,yMax:21500,borderColor:'rgba(255,255,255,0.35)',borderWidth:1.5,borderDash:[8,4]},now:{type:'line',xMin:N,xMax:N,borderColor:'rgba(255,255,255,0.2)',borderWidth:1,borderDash:[3,3]}}}},scales:{x:{ticks:{maxTicksLimit:7,font:{size:9},callback:(v,idx)=>idx%17===0?L[idx]:''},grid:{display:false}},y:{min:0,ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},grid:{color:'rgba(255,255,255,0.03)'}}}}})};
+
+// ─── Projection charts ───
+</script>
+</body>
+</html>

@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
-BASE_DIR   = Path(__file__).parent / "festiflow-v5"
+BASE_DIR   = Path(__file__).parent / "festiflow-v4"
 CONFIG_PATH = BASE_DIR / "event_config.csv"
 RUN_PY      = BASE_DIR / "run.py"
 
@@ -149,7 +149,7 @@ def get_events():
 
 
 @app.post("/generate")
-aasync def generate(
+async def generate(
     event_id:     str      = Form(...),
     password:     str      = Form(...),
     dice_file:    UploadFile = File(...),

@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
-BASE_DIR   = Path(__file__).parent / "festiflow-v4"
+BASE_DIR   = Path(__file__).parent / "festiflow-v5"
 CONFIG_PATH = BASE_DIR / "event_config.csv"
 RUN_PY      = BASE_DIR / "run.py"
 

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Festiflow — Mettre à jour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #08090d;
+    --surface:   #12131a;
+    --surface2:  rgba(255,255,255,0.03);
+    --border:    rgba(255,255,255,0.08);
+    --text:      #ffffff;
+    --muted:     #636e72;
+    --dim:       #2d3436;
+    --accent:    #6c5ce7;
+    --accent-lt: #a29bfe;
+    --green:     #00b894;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* ── Nav ── */
+  nav { background:rgba(8,9,13,0.95); border-bottom:1px solid var(--border); padding:0 24px; display:flex; align-items:center; gap:4px; backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
+  .nav-brand { font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:1px; padding:13px 16px 13px 0; border-right:1px solid var(--border); margin-right:8px; white-space:nowrap; }
+  .nav-link { padding:13px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); white-space:nowrap; cursor:pointer; border-bottom:2px solid transparent; text-decoration:none; transition:color 0.2s; }
+  .nav-link:hover { color:var(--accent-lt); }
+  .nav-link.active { color:#fff; border-bottom-color:var(--accent); }
+
+  /* ── Layout ── */
+  .page { max-width:500px; margin:0 auto; padding:48px 24px; }
+  .page-title { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .page-sub { font-size:13px; color:var(--muted); margin-bottom:36px; }
+  .section-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1.2px; font-weight:600; margin-bottom:10px; }
+
+  /* ── Event cards ── */
+  .event-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:28px; }
+  .event-card { border:1.5px solid var(--border); border-radius:10px; padding:14px 16px; cursor:pointer; transition:all 0.15s; background:var(--surface2); user-select:none; }
+  .event-card:hover { border-color:rgba(108,92,231,0.4); background:rgba(108,92,231,0.04); }
+  .event-card.selected { border-color:var(--accent); background:rgba(108,92,231,0.08); }
+  .event-card-inner { display:flex; justify-content:space-between; align-items:flex-start; }
+  .event-card-name { font-size:13px; font-weight:600; color:#fff; margin-bottom:4px; }
+  .event-card-meta { font-size:11px; color:var(--muted); display:flex; align-items:center; gap:5px; }
+  .event-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .radio { width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.15); flex-shrink:0; margin-top:2px; transition:all 0.15s; }
+  .event-card.selected .radio { border-color:var(--accent); background:var(--accent); box-shadow:inset 0 0 0 3px var(--surface); }
+  .event-skeleton { border-radius:10px; background:var(--surface2); border:1px solid var(--border); height:72px; animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
+
+  /* ── File drop zones ── */
+  .drop-wrap { margin-bottom:10px; }
+  .drop { border:1.5px dashed rgba(108,92,231,0.3); border-radius:9px; padding:16px; display:flex; align-items:center; gap:12px; background:rgba(108,92,231,0.03); cursor:pointer; transition:all 0.15s; opacity:0.35; pointer-events:none; }
+  .drop.enabled { opacity:1; pointer-events:all; }
+  .drop.enabled:hover { border-color:rgba(108,92,231,0.6); background:rgba(108,92,231,0.07); }
+  .drop.has-file { border-color:rgba(0,184,148,0.4); background:rgba(0,184,148,0.04); border-style:solid; opacity:1; pointer-events:all; }
+  .drop-icon { width:32px; height:32px; border-radius:7px; background:rgba(108,92,231,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s; }
+  .drop.has-file .drop-icon { background:rgba(0,184,148,0.1); }
+  .drop-text { flex:1; min-width:0; }
+  .drop-name { font-size:12px; color:var(--accent-lt); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .drop.has-file .drop-name { color:var(--green); }
+  .drop-hint { font-size:10px; color:var(--muted); margin-top:2px; }
+  .drop.has-file .drop-hint { color:rgba(0,184,148,0.6); }
+  input[type=file] { display:none; }
+
+  /* ── Button ── */
+  .gen-btn { width:100%; padding:13px; border:none; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit; letter-spacing:0.3px; transition:all 0.2s; cursor:not-allowed; background:rgba(108,92,231,0.1); color:rgba(162,155,254,0.3); margin-top:6px; }
+  .gen-btn.ready { background:linear-gradient(135deg,var(--accent),var(--accent-lt)); color:#fff; cursor:pointer; }
+  .gen-btn.ready:hover { opacity:0.9; }
+  .hint { text-align:center; font-size:10px; color:var(--dim); margin-top:8px; min-height:16px; transition:opacity 0.2s; }
+
+  /* ── Password modal ── */
+  .overlay { position:fixed; inset:0; background:rgba(8,9,13,0.8); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:100; }
+  .modal { background:var(--surface); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:28px; width:320px; }
+  .modal-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .modal-sub { font-size:12px; color:var(--muted); margin-bottom:20px; }
+  .pw-input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; color:#fff; font-size:14px; font-family:inherit; outline:none; transition:border-color 0.2s; margin-bottom:10px; }
+  .pw-input:focus { border-color:var(--accent); }
+  .pw-input.error { border-color:#e17055; }
+  .pw-error { font-size:11px; color:#e17055; margin-bottom:10px; min-height:16px; }
+  .pw-btn { width:100%; padding:11px; background:linear-gradient(135deg,var(--accent),var(--accent-lt)); border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+
+  /* ── Progress ── */
+  .progress-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:20px; margin-top:20px; display:none; }
+  .progress-spinner { width:32px; height:32px; border:2px solid rgba(108,92,231,0.15); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 14px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .progress-label { font-size:13px; font-weight:600; color:#fff; text-align:center; margin-bottom:4px; }
+  .progress-event { font-size:11px; color:var(--muted); text-align:center; margin-bottom:16px; }
+  .prog-step { display:flex; align-items:center; gap:10px; padding:5px 0; font-size:12px; }
+  .prog-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.08); }
+  .prog-dot.done { background:rgba(0,184,148,0.15); border-color:rgba(0,184,148,0.4); }
+  .prog-dot.active { border-color:rgba(108,92,231,0.5); }
+  @keyframes dot-pulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+  /* ── Success ── */
+  .success-card { background:rgba(0,184,148,0.04); border:1px solid rgba(0,184,148,0.15); border-radius:10px; padding:28px; margin-top:20px; text-align:center; display:none; }
+  .success-icon { width:48px; height:48px; background:rgba(0,184,148,0.1); border:1px solid rgba(0,184,148,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .success-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; color:#fff; margin-bottom:5px; }
+  .success-url { font-size:11px; color:var(--muted); margin-bottom:20px; }
+  .success-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .btn-view { padding:9px 20px; background:rgba(0,184,148,0.08); border:1px solid rgba(0,184,148,0.25); border-radius:7px; color:var(--green); font-size:12px; font-weight:600; text-decoration:none; }
+  .btn-reset { padding:9px 20px; background:var(--surface2); border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-brand">Festiflow</div>
+  <a class="nav-link active">Mettre à jour</a>
+</nav>
+
+<!-- Password overlay -->
+<div class="overlay" id="pw-overlay">
+  <div class="modal">
+    <div class="modal-title">Accès restreint</div>
+    <div class="modal-sub">Entrez le mot de passe pour mettre à jour les dashboards.</div>
+    <input class="pw-input" type="password" id="pw-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')submitPassword()">
+    <div class="pw-error" id="pw-error"></div>
+    <button class="pw-btn" onclick="submitPassword()">Continuer</button>
+  </div>
+</div>
+
+<!-- Main page -->
+<div class="page" id="main-page" style="display:none">
+  <div class="page-title">Mettre à jour un dashboard</div>
+  <div class="page-sub">Sélectionnez l'événement, puis uploadez les fichiers DICE et Shotgun.</div>
+
+  <!-- Step 1: Event -->
+  <div class="section-label">1 · Événement</div>
+  <div class="event-grid" id="event-grid">
+    <div class="event-skeleton"></div>
+    <div class="event-skeleton"></div>
+  </div>
+
+  <!-- Step 2: Files -->
+  <div class="section-label">2 · Fichiers</div>
+
+  <div class="drop-wrap">
+    <div class="drop-label" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:7px;">DICE — Doorlist</div>
+    <div class="drop" id="drop-dice" onclick="document.getElementById('input-dice').click()">
+      <div class="drop-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v9M4 4l3-3 3 3" stroke="#a29bfe" stroke-width="1.3" stroke-linecap="round"/><path d="M1 11v1.5a.5.5 0 00.5.5h11a.5.5 0 00.5-.5V11" stroke="#a29bfe" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="drop-text">
+        <div class="drop-name" id="dice-name">doorlist.zip</div>
+        <div class="drop-hint" id="dice-hint">Cliquer pour uploader</div>
+      </div>
+    </div>
+    <input type="file" id="input-dice" accept=".zip" onchange="fileSelected('dice', this)">
+  </div>
+
+  <div class="drop-wrap">
+    <div class="drop-label" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:7px;">Shotgun — Valid Orders</div>
+    <div class="drop" id="drop-sg" onclick="document.getElementById('input-sg').click()">
+      <div class="drop-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v9M4 4l3-3 3 3" stroke="#a29bfe" stroke-width="1.3" stroke-linecap="round"/><path d="M1 11v1.5a.5.5 0 00.5.5h11a.5.5 0 00.5-.5V11" stroke="#a29bfe" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="drop-text">
+        <div class="drop-name" id="sg-name">valid_orders.csv</div>
+        <div class="drop-hint" id="sg-hint">Cliquer pour uploader</div>
+      </div>
+    </div>
+    <input type="file" id="input-sg" accept=".csv" onchange="fileSelected('sg', this)">
+  </div>
+
+  <button class="gen-btn" id="gen-btn" disabled onclick="generate()">Générer le Dashboard</button>
+  <div class="hint" id="hint-text">Sélectionnez un événement pour commencer</div>
+
+  <!-- Progress -->
+  <div class="progress-card" id="progress-card">
+    <div class="progress-spinner"></div>
+    <div class="progress-label" id="prog-label">Envoi des fichiers…</div>
+    <div class="progress-event" id="prog-event">—</div>
+    <div class="prog-step"><div class="prog-dot done"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" stroke="#00b894" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></div><span style="color:var(--green)">Fichiers reçus par Railway</span></div>
+    <div class="prog-step" id="ps2"><div class="prog-dot active"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dot-pulse 1s ease-in-out infinite;margin:auto"></div></div><span style="color:var(--accent-lt)">Merge DICE + Shotgun</span></div>
+    <div class="prog-step" id="ps3"><div class="prog-dot" style="border-color:rgba(255,255,255,0.08)"></div><span style="color:var(--dim)">Calcul des métriques</span></div>
+    <div class="prog-step" id="ps4"><div class="prog-dot" style="border-color:rgba(255,255,255,0.08)"></div><span style="color:var(--dim)" id="ps4-label">Push vers GitHub Pages</span></div>
+  </div>
+
+  <!-- Success -->
+  <div class="success-card" id="success-card">
+    <div class="success-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#00b894" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="success-title">Dashboard mis à jour</div>
+    <div class="success-url" id="success-url">—</div>
+    <div class="success-actions">
+      <a class="btn-view" id="success-link" href="#" target="_blank">Voir le dashboard</a>
+      <button class="btn-reset" onclick="resetForm()">Mettre à jour un autre</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+// Set this to your Railway service URL after deploying
+const API_URL = (window.FESTIFLOW_API_URL || 'https://YOUR-RAILWAY-URL.up.railway.app').replace(/\/$/, '');
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let password      = '';
+let selectedEvent = null;
+let diceFile      = null;
+let sgFile        = null;
+let events        = [];
+
+// ── Password ──────────────────────────────────────────────────────────────────
+function submitPassword() {
+  const val = document.getElementById('pw-input').value.trim();
+  if (!val) return;
+  password = val;
+  document.getElementById('pw-overlay').style.display = 'none';
+  document.getElementById('main-page').style.display = 'block';
+  loadEvents();
+}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const res = await fetch(`${API_URL}/events`);
+    events = await res.json();
+    renderEvents(events);
+  } catch (e) {
+    document.getElementById('event-grid').innerHTML =
+      `<div style="grid-column:1/-1;font-size:12px;color:#e17055;padding:12px 0">
+        Impossible de charger les événements. Vérifiez que Railway est en ligne.
+      </div>`;
+  }
+}
+
+const DOT_COLORS = ['#00b894','#f6ad55','#a29bfe','#fd79a8','#74b9ff'];
+
+function renderEvents(evs) {
+  const grid = document.getElementById('event-grid');
+  if (!evs.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--muted);padding:8px 0">Aucun événement actif trouvé.</div>';
+    return;
+  }
+  grid.innerHTML = evs.map((ev, i) => `
+    <div class="event-card" id="card-${ev.event_id}" onclick="selectEvent('${ev.event_id}')">
+      <div class="event-card-inner">
+        <div>
+          <div class="event-card-name">${ev.event_name}</div>
+          <div class="event-card-meta">
+            <span class="event-dot" style="background:${DOT_COLORS[i % DOT_COLORS.length]}"></span>
+            ${ev.date_range}
+          </div>
+        </div>
+        <div class="radio" id="radio-${ev.event_id}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectEvent(id) {
+  selectedEvent = events.find(e => e.event_id === id);
+  document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + id).classList.add('selected');
+  document.getElementById('drop-dice').classList.add('enabled');
+  document.getElementById('drop-sg').classList.add('enabled');
+  const filename = selectedEvent ? selectedEvent.output_filename : `${id}.html`;
+  document.getElementById('ps4-label').textContent = `Push → ${filename}`;
+  document.getElementById('prog-event').textContent =
+    `Mise à jour de ${selectedEvent.event_name}`;
+  updateBtn();
+}
+
+// ── Files ─────────────────────────────────────────────────────────────────────
+function fileSelected(which, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (which === 'dice') {
+    diceFile = file;
+    document.getElementById('drop-dice').classList.add('has-file');
+    document.getElementById('dice-name').textContent = file.name;
+    document.getElementById('dice-hint').textContent = '✓ Prêt · ' + (file.size / 1024 / 1024).toFixed(1) + ' MB';
+  } else {
+    sgFile = file;
+    document.getElementById('drop-sg').classList.add('has-file');
+    document.getElementById('sg-name').textContent = file.name;
+    document.getElementById('sg-hint').textContent = '✓ Prêt · ' + (file.size / 1024 / 1024).toFixed(1) + ' MB';
+  }
+  updateBtn();
+}
+
+function updateBtn() {
+  const btn  = document.getElementById('gen-btn');
+  const hint = document.getElementById('hint-text');
+  if (selectedEvent && diceFile && sgFile) {
+    btn.classList.add('ready'); btn.disabled = false; hint.textContent = '';
+  } else if (!selectedEvent) {
+    btn.classList.remove('ready'); btn.disabled = true;
+    hint.textContent = 'Sélectionnez un événement pour commencer';
+  } else {
+    btn.classList.remove('ready'); btn.disabled = true;
+    const missing = !diceFile && !sgFile ? 'les 2 fichiers'
+                  : !diceFile ? 'le fichier DICE' : 'le fichier Shotgun';
+    hint.textContent = `Uploadez ${missing} pour continuer`;
+  }
+}
+
+// ── Generate ──────────────────────────────────────────────────────────────────
+async function generate() {
+  // Lock UI
+  document.getElementById('gen-btn').classList.remove('ready');
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('hint-text').textContent = '';
+  document.getElementById('progress-card').style.display = 'block';
+  document.getElementById('success-card').style.display = 'none';
+
+  // Animate progress steps
+  const stepLabels = ['Merge DICE + Shotgun…', 'Calcul des métriques…', 'Push vers GitHub Pages…'];
+  let si = 0;
+  const stepInterval = setInterval(() => {
+    markStepDone(si + 2);
+    si++;
+    if (si < stepLabels.length) {
+      document.getElementById('prog-label').textContent = stepLabels[si];
+      markStepActive(si + 2);
+    }
+  }, 1800);
+
+  try {
+    const fd = new FormData();
+    fd.append('event_id', selectedEvent.event_id);
+    fd.append('password', password);
+    fd.append('dice_file', diceFile, diceFile.name);
+    fd.append('shotgun_file', sgFile, sgFile.name);
+
+    const res = await fetch(`${API_URL}/generate`, { method: 'POST', body: fd });
+    clearInterval(stepInterval);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'Erreur inconnue');
+    }
+
+    const data = await res.json();
+
+    // Mark all steps done
+    [2, 3, 4].forEach(markStepDone);
+
+    setTimeout(() => {
+      document.getElementById('progress-card').style.display = 'none';
+      document.getElementById('success-url').textContent = data.dashboard_url;
+      document.getElementById('success-link').href = data.dashboard_url;
+      document.getElementById('success-card').style.display = 'block';
+    }, 500);
+
+  } catch (e) {
+    clearInterval(stepInterval);
+    document.getElementById('progress-card').style.display = 'none';
+    document.getElementById('hint-text').textContent = `Erreur : ${e.message}`;
+    document.getElementById('hint-text').style.color = '#e17055';
+    document.getElementById('gen-btn').classList.add('ready');
+    document.getElementById('gen-btn').disabled = false;
+  }
+}
+
+function markStepDone(n) {
+  const el = document.getElementById('ps' + n);
+  if (!el) return;
+  const dot = el.querySelector('.prog-dot');
+  dot.className = 'prog-dot done';
+  dot.innerHTML = '<svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" stroke="#00b894" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>';
+  el.querySelector('span').style.color = 'var(--green)';
+}
+
+function markStepActive(n) {
+  const el = document.getElementById('ps' + n);
+  if (!el) return;
+  const dot = el.querySelector('.prog-dot');
+  dot.className = 'prog-dot active';
+  dot.innerHTML = '<div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dot-pulse 1s ease-in-out infinite;margin:auto"></div>';
+  el.querySelector('span').style.color = 'var(--accent-lt)';
+}
+
+function resetForm() {
+  selectedEvent = null; diceFile = null; sgFile = null;
+  document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('drop-dice').classList.remove('enabled', 'has-file');
+  document.getElementById('drop-sg').classList.remove('enabled', 'has-file');
+  document.getElementById('dice-name').textContent = 'doorlist.zip';
+  document.getElementById('dice-hint').textContent = 'Cliquer pour uploader';
+  document.getElementById('sg-name').textContent = 'valid_orders.csv';
+  document.getElementById('sg-hint').textContent = 'Cliquer pour uploader';
+  document.getElementById('input-dice').value = '';
+  document.getElementById('input-sg').value = '';
+  document.getElementById('hint-text').style.color = '';
+  document.getElementById('success-card').style.display = 'none';
+  // Reset progress steps
+  [2,3,4].forEach(n => {
+    const el = document.getElementById('ps' + n);
+    if (!el) return;
+    const dot = el.querySelector('.prog-dot');
+    dot.className = 'prog-dot';
+    dot.style.borderColor = 'rgba(255,255,255,0.08)';
+    dot.innerHTML = '';
+    el.querySelector('span').style.color = 'var(--dim)';
+  });
+  document.getElementById('prog-label').textContent = 'Envoi des fichiers…';
+  updateBtn();
+}
+</script>
+</body>
+</html>

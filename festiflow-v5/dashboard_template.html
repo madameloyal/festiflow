@@ -29,6 +29,9 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; ba
 .nav-brand { font-family: 'Space Grotesk', 'DM Sans', sans-serif; font-size: 0.68em; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; padding: 10px 14px 10px 0; white-space: nowrap; border-right: 1px solid var(--border); margin-right: 4px; }
 .nav-link:hover { color: var(--text-muted); }
 .nav-link.active { color: #fff; border-bottom-color: var(--amber); }
+.nav-spacer { flex: 1; }
+.nav-upload-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(108,92,231,0.12); border: 1px solid rgba(108,92,231,0.3); border-radius: 6px; color: #a29bfe; font-size: 0.62em; font-weight: 600; letter-spacing: 1px; text-decoration: none; white-space: nowrap; transition: all 0.2s; margin: auto 0; }
+.nav-upload-btn:hover { background: rgba(108,92,231,0.22); border-color: rgba(108,92,231,0.6); color: #fff; }
 
 /* ═══ HEADER ═══ */
 .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-radius: 12px; padding: 14px 22px; margin-bottom: 0; border: 2px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, var(--day-0), var(--day-1)) border-box; }
@@ -413,6 +416,11 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; ba
     <a class="nav-link" onclick="scrollToSection('sec-repartition')">Répartition</a>
     <a class="nav-link" onclick="scrollToSection('sec-suivi')">Suivi</a>
     <a class="nav-link" onclick="scrollToSection('sec-projection')">Projection</a>
+    <div class="nav-spacer"></div>
+    <a class="nav-upload-btn" href="upload.html">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v7M3.5 3l2-2 2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M1 8.5v1a.5.5 0 00.5.5h8a.5.5 0 00.5-.5v-1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Mettre à jour
+    </a>
 </div>
 </nav>
 

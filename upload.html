@@ -20,7 +20,9 @@
     --green:     #00b894;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; position:relative; }
+  body::before { content:''; position:fixed; inset:0; background:url('upload.JPG') center center/cover no-repeat; opacity:0.12; z-index:0; pointer-events:none; }
+  nav, .page, .overlay { position:relative; z-index:1; }
 
   /* ── Nav ── */
   nav { background:rgba(8,9,13,0.95); border-bottom:1px solid var(--border); padding:0 24px; display:flex; align-items:center; gap:4px; backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
@@ -196,7 +198,7 @@
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 // Set this to your Railway service URL after deploying
-const API_URL = (window.FESTIFLOW_API_URL || 'https://festiflow-production.up.railway.app').replace(/\/$/, '');
+const API_URL = (window.FESTIFLOW_API_URL || 'https://YOUR-RAILWAY-URL.up.railway.app').replace(/\/$/, '');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let password      = '';

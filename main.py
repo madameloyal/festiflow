@@ -149,11 +149,11 @@ def get_events():
 
 
 @app.post("/generate")
-async def generate(
-    event_id:        Form(...),
-    password:        Form(...),
-    dice_file:       UploadFile = File(...),
-    shotgun_file:    UploadFile = File(...),
+aasync def generate(
+    event_id:     str      = Form(...),
+    password:     str      = Form(...),
+    dice_file:    UploadFile = File(...),
+    shotgun_file: UploadFile = File(...),
 ):
     # ── Auth ──────────────────────────────────────────────────────────────────
     if UPLOAD_PASSWORD and password != UPLOAD_PASSWORD:

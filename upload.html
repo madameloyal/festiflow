@@ -77,11 +77,12 @@
 
   /* ── Password modal ── */
   .overlay { position:fixed; inset:0; background:rgba(4,4,10,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:100; }
-  .modal { background:rgba(12,6,24,0.7); border:1px solid rgba(168,85,247,0.2); border-radius:20px; padding:32px 28px; width:320px; box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(168,85,247,0.1); backdrop-filter:blur(32px); -webkit-backdrop-filter:blur(32px); text-align:center; }
+  .modal { background:rgba(12,6,24,0.3); border:1px solid rgba(168,85,247,0.15); border-radius:20px; padding:32px 28px; width:320px; box-shadow:0 32px 80px rgba(0,0,0,0.2); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); text-align:center; }
   .modal-logo { width:72px; height:72px; border-radius:50%; object-fit:cover; margin:0 auto 16px; display:block; }
   .modal-title { font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#fff; margin-bottom:4px; }
   .modal-sub { font-size:12px; color:#6a6a8a; margin-bottom:24px; letter-spacing:0.3px; }
   .pw-field { width:100%; padding:13px 16px; background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(99,102,241,0.12)); border:1px solid rgba(168,85,247,0.3); border-radius:10px; margin-bottom:10px; cursor:text; position:relative; min-height:46px; display:flex; align-items:center; box-sizing:border-box; text-align:left; }
+  .pw-field:hover { border-color:rgba(168,85,247,0.6); box-shadow:0 0 16px rgba(168,85,247,0.2); }
   .pw-field.error { border-color:#e17055; }
   .pw-dots { color:#fff; font-size:18px; letter-spacing:4px; line-height:1; }
   .pw-placeholder { color:#4a4a6a; font-size:14px; font-family:'DM Sans',sans-serif; }

@@ -4,20 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Festiflow — Mettre à jour</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #08090d;
-    --surface:   #12131a;
-    --surface2:  rgba(255,255,255,0.03);
-    --border:    rgba(255,255,255,0.08);
-    --text:      #ffffff;
-    --muted:     #636e72;
-    --dim:       #2d3436;
-    --accent:    #6c5ce7;
-    --accent-lt: #a29bfe;
-    --green:     #00b894;
+    --bg:        #08080d;
+    --surface:   #101017;
+    --surface2:  #16161f;
+    --border:    rgba(255,255,255,0.05);
+    --border-h:  rgba(255,255,255,0.08);
+    --text:      #f0f0f5;
+    --muted:     #a0a0b0;
+    --dim:       #5a5a6a;
+    --accent:    #6366f1;
+    --accent-lt: #818cf8;
+    --purple:    #a855f7;
+    --indigo:    #6366f1;
+    --green:     #34d399;
+    --amber:     #fbbf24;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'DM Sans',sans-serif; background:#08090d url('upload.JPG') center center/cover no-repeat fixed; color:var(--text); min-height:100vh; position:relative; }
@@ -26,7 +29,7 @@
 
   /* ── Nav ── */
   nav { background:rgba(8,9,13,0.95); border-bottom:1px solid var(--border); padding:0 24px; display:flex; align-items:center; gap:4px; backdrop-filter:blur(12px); position:sticky; top:0; z-index:10; }
-  .nav-brand { font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:1px; padding:13px 16px 13px 0; border-right:1px solid var(--border); margin-right:8px; white-space:nowrap; }
+  .nav-brand { font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:1px; padding:13px 16px 13px 0; border-right:1px solid var(--border); margin-right:8px; white-space:nowrap; flex-shrink:0; }
   .nav-link { padding:13px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); white-space:nowrap; cursor:pointer; border-bottom:2px solid transparent; text-decoration:none; transition:color 0.2s; }
   .nav-link:hover { color:var(--accent-lt); }
   .nav-link.active { color:#fff; border-bottom-color:var(--accent); }
@@ -68,20 +71,21 @@
 
   /* ── Button ── */
   .gen-btn { width:100%; padding:13px; border:none; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit; letter-spacing:0.3px; transition:all 0.2s; cursor:not-allowed; background:rgba(108,92,231,0.1); color:rgba(162,155,254,0.3); margin-top:6px; }
-  .gen-btn.ready { background:linear-gradient(135deg,var(--accent),var(--accent-lt)); color:#fff; cursor:pointer; }
+  .gen-btn.ready { background:linear-gradient(135deg,var(--purple),var(--indigo)); color:#fff; cursor:pointer; }
   .gen-btn.ready:hover { opacity:0.9; }
   .hint { text-align:center; font-size:10px; color:var(--dim); margin-top:8px; min-height:16px; transition:opacity 0.2s; }
 
   /* ── Password modal ── */
-  .overlay { position:fixed; inset:0; background:rgba(8,9,13,0.8); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:100; }
-  .modal { background:var(--surface); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:28px; width:320px; }
-  .modal-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; color:#fff; margin-bottom:6px; }
-  .modal-sub { font-size:12px; color:var(--muted); margin-bottom:20px; }
-  .pw-input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; color:#fff; font-size:14px; font-family:inherit; outline:none; transition:border-color 0.2s; margin-bottom:10px; }
-  .pw-input:focus { border-color:var(--accent); }
-  .pw-input.error { border-color:#e17055; }
+  .overlay { position:fixed; inset:0; background:rgba(8,9,13,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:100; }
+  .modal { background:rgba(10,5,20,0.55); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:28px; width:320px; box-shadow:0 24px 60px rgba(0,0,0,0.5); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); }
+  .modal-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; color:#fff; margin-bottom:2px; }
+  .pw-field { width:100%; padding:12px 16px; background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(99,102,241,0.18)); border:1px solid rgba(168,85,247,0.35); border-radius:10px; color:#f0f0f5; font-size:14px; font-family:inherit; margin-bottom:12px; cursor:text; position:relative; min-height:46px; display:flex; align-items:center; box-sizing:border-box; }
+  .pw-field.error { border-color:#e17055; }
+  .pw-dots { color:#f0f0f5; font-size:20px; letter-spacing:3px; line-height:1; }
+  .pw-placeholder { color:#6a5a7a; font-size:14px; }
   .pw-error { font-size:11px; color:#e17055; margin-bottom:10px; min-height:16px; }
-  .pw-btn { width:100%; padding:11px; background:linear-gradient(135deg,var(--accent),var(--accent-lt)); border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .pw-btn { width:100%; padding:12px; background:linear-gradient(135deg,var(--purple),var(--indigo)); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; letter-spacing:0.3px; transition:opacity 0.2s; }
+  .pw-btn:hover { opacity:0.9; }
 
   /* ── Progress ── */
   .progress-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:20px; margin-top:20px; display:none; }
@@ -116,11 +120,20 @@
 <!-- Password overlay -->
 <div class="overlay" id="pw-overlay">
   <div class="modal">
-    <div class="modal-title">Accès restreint</div>
-    <div class="modal-sub">Entrez le mot de passe pour mettre à jour les dashboards.</div>
-    <input class="pw-input" type="password" id="pw-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')submitPassword()">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <img src="LOGO_ROND_JAUNE.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+      <div>
+        <div class="modal-title">Festiflow: Ticketing</div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:0.5px">Page d'import CSV</div>
+      </div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="pw-field" id="pw-field">
+      <input type="password" id="pw-input" style="position:absolute;opacity:0;width:1px;height:1px;" onkeydown="if(event.key==='Enter')submitPassword()" oninput="updatePwDots(this.value)">
+      <span class="pw-placeholder" id="pw-display">Mot de passe</span>
+    </div>
     <div class="pw-error" id="pw-error"></div>
-    <button class="pw-btn" onclick="submitPassword()">Continuer</button>
+    <button class="pw-btn" onclick="submitPassword()">Continuer →</button>
   </div>
 </div>
 
@@ -208,6 +221,23 @@ let sgFile        = null;
 let events        = [];
 
 // ── Password ──────────────────────────────────────────────────────────────────
+function updatePwDots(val) {
+  const display = document.getElementById('pw-display');
+  const field = document.getElementById('pw-field');
+  if (val.length === 0) {
+    display.className = 'pw-placeholder';
+    display.textContent = 'Mot de passe';
+  } else {
+    display.className = 'pw-dots';
+    display.textContent = '●'.repeat(val.length);
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const field = document.getElementById('pw-field');
+  if (field) field.addEventListener('click', function() {
+    document.getElementById('pw-input').focus();
+  });
+});
 function submitPassword() {
   const val = document.getElementById('pw-input').value.trim();
   if (!val) return;

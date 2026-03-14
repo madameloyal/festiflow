@@ -76,16 +76,18 @@
   .hint { text-align:center; font-size:10px; color:var(--dim); margin-top:8px; min-height:16px; transition:opacity 0.2s; }
 
   /* ── Password modal ── */
-  .overlay { position:fixed; inset:0; background:rgba(8,9,13,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:100; }
-  .modal { background:rgba(10,5,20,0.55); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:28px; width:320px; box-shadow:0 24px 60px rgba(0,0,0,0.5); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); }
-  .modal-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; color:#fff; margin-bottom:2px; }
-  .pw-field { width:100%; padding:12px 16px; background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(99,102,241,0.18)); border:1px solid rgba(168,85,247,0.35); border-radius:10px; color:#f0f0f5; font-size:14px; font-family:inherit; margin-bottom:12px; cursor:text; position:relative; min-height:46px; display:flex; align-items:center; box-sizing:border-box; }
+  .overlay { position:fixed; inset:0; background:rgba(4,4,10,0.7); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:100; }
+  .modal { background:rgba(12,6,24,0.7); border:1px solid rgba(168,85,247,0.2); border-radius:20px; padding:32px 28px; width:320px; box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(168,85,247,0.1); backdrop-filter:blur(32px); -webkit-backdrop-filter:blur(32px); text-align:center; }
+  .modal-logo { width:72px; height:72px; border-radius:50%; object-fit:cover; margin:0 auto 16px; display:block; }
+  .modal-title { font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#fff; margin-bottom:4px; }
+  .modal-sub { font-size:12px; color:#6a6a8a; margin-bottom:24px; letter-spacing:0.3px; }
+  .pw-field { width:100%; padding:13px 16px; background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(99,102,241,0.12)); border:1px solid rgba(168,85,247,0.3); border-radius:10px; margin-bottom:10px; cursor:text; position:relative; min-height:46px; display:flex; align-items:center; box-sizing:border-box; text-align:left; }
   .pw-field.error { border-color:#e17055; }
-  .pw-dots { color:#f0f0f5; font-size:20px; letter-spacing:3px; line-height:1; }
-  .pw-placeholder { color:#6a5a7a; font-size:14px; }
-  .pw-error { font-size:11px; color:#e17055; margin-bottom:10px; min-height:16px; }
-  .pw-btn { width:100%; padding:13px; background:linear-gradient(135deg,#a855f7,#6366f1); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; letter-spacing:0.5px; transition:opacity 0.2s; box-shadow:0 4px 20px rgba(168,85,247,0.4); }
-  .pw-btn:hover { opacity:0.9; }
+  .pw-dots { color:#fff; font-size:18px; letter-spacing:4px; line-height:1; }
+  .pw-placeholder { color:#4a4a6a; font-size:14px; font-family:'DM Sans',sans-serif; }
+  .pw-error { font-size:11px; color:#e17055; margin-bottom:8px; min-height:14px; text-align:left; }
+  .pw-btn { width:100%; padding:14px; background:linear-gradient(135deg,#a855f7 0%,#6366f1 100%); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; letter-spacing:0.5px; transition:all 0.2s; box-shadow:0 8px 24px rgba(168,85,247,0.45); }
+  .pw-btn:hover { transform:translateY(-1px); box-shadow:0 12px 28px rgba(168,85,247,0.55); }
 
   /* ── Progress ── */
   .progress-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:20px; margin-top:20px; display:none; }
@@ -120,14 +122,9 @@
 <!-- Password overlay -->
 <div class="overlay" id="pw-overlay">
   <div class="modal">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-      <img src="LOGO_ROND_JAUNE.png" style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-      <div>
-        <div class="modal-title">Festiflow: Ticketing</div>
-        <div style="font-size:11px;color:var(--muted);letter-spacing:0.5px">Page d'import CSV</div>
-      </div>
-    </div>
-    <div style="height:16px"></div>
+    <img src="LOGO_ROND_JAUNE.png" class="modal-logo">
+    <div class="modal-title">Festiflow: Ticketing</div>
+    <div class="modal-sub">Page d'import CSV</div>
     <div class="pw-field" id="pw-field">
       <input type="password" id="pw-input" style="position:absolute;opacity:0;width:1px;height:1px;" onkeydown="if(event.key==='Enter')submitPassword()" oninput="updatePwDots(this.value)">
       <span class="pw-placeholder" id="pw-display">Mot de passe</span>

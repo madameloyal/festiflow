@@ -87,7 +87,7 @@
   .pw-dots { color:#fff; font-size:18px; letter-spacing:4px; line-height:1; }
   .pw-placeholder { color:#4a4a6a; font-size:14px; font-family:'DM Sans',sans-serif; }
   .pw-error { font-size:11px; color:#e17055; margin-bottom:8px; min-height:14px; text-align:left; }
-  .pw-btn { width:100%; padding:14px; background:linear-gradient(135deg,#a855f7 0%,#6366f1 100%); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; letter-spacing:0.5px; transition:all 0.2s; box-shadow:0 8px 24px rgba(168,85,247,0.45); }
+  .pw-btn { width:100%; padding:14px; background:#a855f7; background:-webkit-linear-gradient(135deg,#a855f7 0%,#6366f1 100%); background:linear-gradient(135deg,#a855f7 0%,#6366f1 100%); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; letter-spacing:0.5px; transition:all 0.2s; box-shadow:0 8px 24px rgba(168,85,247,0.45); }
   .pw-btn:hover { transform:translateY(-1px); box-shadow:0 12px 28px rgba(168,85,247,0.55); }
 
   /* ── Progress ── */
@@ -131,7 +131,7 @@
       <span class="pw-placeholder" id="pw-display">Mot de passe</span>
     </div>
     <div class="pw-error" id="pw-error"></div>
-    <button class="pw-btn" onclick="submitPassword()">Continuer →</button>
+    <button onclick="submitPassword()" onmouseover="this.style.borderColor='rgba(168,85,247,0.6)';this.style.boxShadow='0 0 16px rgba(168,85,247,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.boxShadow='none'" style="-webkit-appearance:none;appearance:none;width:100%;padding:14px;background:rgba(12,6,24,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:0.5px;margin-top:2px;display:block;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:border-color 0.2s,box-shadow 0.2s;">Continuer →</button>
   </div>
 </div>
 

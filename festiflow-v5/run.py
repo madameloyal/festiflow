@@ -51,6 +51,7 @@ import shutil
 import tempfile
 import argparse
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from collections import defaultdict
 from pathlib import Path
 
@@ -220,6 +221,8 @@ def load_event_config(config_path, event_id=None):
                     'compare_to': row.get('compare_to', ''),
                     'merge_into': row.get('merge_into', ''),
                     'status': row.get('status', 'archive'),
+                    'login_password': row.get('login_password', ''),
+                    'login_bg_image': row.get('login_bg_image', 'upload.JPG'),
                     'days': []
                 }
             
@@ -1394,7 +1397,7 @@ def calculate_projection_scenarios(tickets, cutoff_date, event_config):
     event_date = event_config['event_date_first']
     total_capacity = event_config['total_capacity']
     
-    days_remaining = (event_date - cutoff_date).days
+    days_remaining = max(0, (event_date - cutoff_date).days)  # clamp to 0 when event is past
     
     # Calculate all 7-day velocity windows
     all_dates = sorted(set(t['order_date'] for t in tickets))
@@ -1545,8 +1548,8 @@ def build_dashboard_html_v3(template_path, metrics, cutoff_date, event_config,
     event_date = event_config['event_date_first']
     event_date_last = event_config['event_date_last']
     num_days = event_config['num_days']
-    days_remaining = (event_date - cutoff_date).days  # From velocity cutoff, for projections
-    days_remaining_display = (event_date - cutoff_cumulative).days if cutoff_cumulative else days_remaining  # From today, for YoY badges
+    days_remaining = max(0, (event_date - cutoff_date).days)  # clamp to 0 when event is past  # From velocity cutoff, for projections
+    days_remaining_display = max(0, (event_date - cutoff_cumulative).days if cutoff_cumulative else days_remaining)  # From today, clamped to 0 when event is past
     current_year = str(event_date.year)
     
     has_comparison = comparison is not None and metrics_prev is not None
@@ -1556,6 +1559,8 @@ def build_dashboard_html_v3(template_path, metrics, cutoff_date, event_config,
         'HAS_COMPARISON': has_comparison,
         'IS_FIRST_EDITION': not has_comparison,
         'SHOW_PAR_JOUR': num_days > 1,
+        'IS_TERMINE': days_remaining_display <= 0,
+        'IS_LIVE': days_remaining_display > 0,
     })
     
     # ── Date formatting ──
@@ -1901,7 +1906,11 @@ def build_dashboard_html_v3(template_path, metrics, cutoff_date, event_config,
         'EVENT_DATES_COMPACT': dates_compact,
         'VENUE': event_config['venue'],
         'EDITION_BADGE': edition_badge,
-        'SALE_STATUS': 'En vente',
+        'SALE_STATUS': 'Terminé' if days_remaining_display <= 0 else 'En vente',
+        'LOGIN_PASSWORD': event_config.get('login_password', ''),
+        'LOGIN_BG_IMAGE': event_config.get('login_bg_image', 'upload.JPG'),
+        'EVENT_ID': event_config.get('event_id', ''),
+        'IS_TERMINE': 'true' if days_remaining_display <= 0 else '',
         'CURRENT_YEAR': current_year,
         'NUM_DAYS': str(num_days),
         'NUM_DAYS_PLURAL': 's' if num_days > 1 else '',
@@ -1909,7 +1918,7 @@ def build_dashboard_html_v3(template_path, metrics, cutoff_date, event_config,
         'DAYS_ON_SALE': str(days_on_sale),
         'SALE_START_DATE': sale_start,
         'DAYS_REMAINING': str(days_remaining_display),
-        'WEEKS_REMAINING_BADGE': f'J-{days_remaining_display}',
+        'WEEKS_REMAINING_BADGE': 'Terminé' if days_remaining_display <= 0 else f'J-{days_remaining_display}',
         'DATA_DATE': fmt_date_fr(cutoff_cumulative) if cutoff_cumulative else fmt_date_fr(cutoff_date),
         'DATA_TIME': generation_time,
         'LAST_TICKET_TIME': last_ticket_str,
@@ -2491,7 +2500,7 @@ def _generate_projection_v3(tickets, tickets_prev_full, cutoff_date, event_confi
     day_names = [d['day_name'].lower() for d in event_config['days']]
     day_configs = {d['day_name'].lower(): d for d in event_config['days']}
     event_date = event_config['event_date_first']
-    days_remaining = (event_date - cutoff_date).days
+    days_remaining = max(0, (event_date - cutoff_date).days)  # clamp to 0 when event is past
     if days_remaining_display is None:
         days_remaining_display = days_remaining
     num_days = len(day_names)
@@ -3067,7 +3076,7 @@ def _generate_projection_charts_js_v3(tickets, tickets_prev_full, cutoff_date, e
     day_names = [d['day_name'].lower() for d in event_config['days']]
     day_configs = {d['day_name'].lower(): d for d in event_config['days']}
     event_date = event_config['event_date_first']
-    days_remaining = (event_date - cutoff_date).days
+    days_remaining = max(0, (event_date - cutoff_date).days)  # clamp to 0 when event is past
     num_days = len(day_names)
     paid = [t for t in tickets if t.get('is_paid', 1) == 1]
     
@@ -3240,7 +3249,7 @@ def _generate_projection_charts_js_v3(tickets, tickets_prev_full, cutoff_date, e
         
         def _to_pct(data_list, capacity):
             """Convert absolute values to percentage of capacity."""
-            return [round(v / capacity * 100, 1) if v is not None else None for v in data_list]
+            return [round(v / capacity * 100, 1) if v is not None and capacity > 0 else None for v in data_list]
         
         actual_data_pct = _to_pct(actual_data, cap)
         proj_curve_pct = _to_pct(proj_curve, cap)
@@ -3476,7 +3485,7 @@ def main():
     )
     
     # Save — set generation time as late as possible (right before write)
-    html = html.replace('{{GENERATION_TIME_PLACEHOLDER}}', datetime.now().strftime('%H:%M'))
+    html = html.replace('{{GENERATION_TIME_PLACEHOLDER}}', datetime.now(ZoneInfo('Europe/Paris')).strftime('%H:%M'))
     output_path = OUTPUT_DIR / "dashboard_FINAL.html"
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)

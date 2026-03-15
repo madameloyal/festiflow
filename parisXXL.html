@@ -439,7 +439,7 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; ba
 </div>
 <script>
 (function(){
-  var stored = sessionStorage.getItem('db_auth');
+  var stored = sessionStorage.getItem('db_auth_paris_xxl_2026');
   if(stored === 'ok') document.getElementById('db-overlay').style.display = 'none';
   document.getElementById('db-pw-field').addEventListener('click', function(){ document.getElementById('db-pw-input').focus(); });
 })();
@@ -450,8 +450,8 @@ function dbUpdateDots(val){
 }
 function dbSubmit(){
   var val = document.getElementById('db-pw-input').value;
-  if(val === 'laxxldeparis'){
-    sessionStorage.setItem('db_auth','ok');
+  if(val === 'laxxldeparis'){ 
+    sessionStorage.setItem('db_auth_paris_xxl_2026','ok');
     document.getElementById('db-overlay').style.display = 'none';
   } else {
     document.getElementById('db-pw-error').textContent = 'Mot de passe incorrect';
@@ -498,7 +498,7 @@ function dbSubmit(){
     
     
 </div>
-<div class="header-ts">🎟 Dernier billet vendu · 15/03 · 04:19 &nbsp;·&nbsp; 📤 Données uploadées · 17:57 <span style="margin-left:12px;font-family:'Space Grotesk','DM Sans',sans-serif;font-weight:600;letter-spacing:1.5px;color:var(--text-dim)">Festiflow: Dashboard</span></div>
+<div class="header-ts">🎟 Dernier billet vendu · 15/03 · 04:19 &nbsp;·&nbsp; 📤 Données uploadées · 18:23 <span style="margin-left:12px;font-family:'Space Grotesk','DM Sans',sans-serif;font-weight:600;letter-spacing:1.5px;color:var(--text-dim)">Festiflow: Dashboard</span></div>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- KPI GRID (4 cards: Revenus, Jours Restants,             -->

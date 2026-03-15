@@ -19,6 +19,17 @@
 }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; font-size: 19px; line-height: 1.55; scroll-padding-top: 60px; }
+.db-overlay { position:fixed; inset:0; background:var(--bg) url('upload.JPG') center center/cover no-repeat; z-index:9999; display:flex; align-items:center; justify-content:center; }
+.db-overlay::before { content:''; position:fixed; inset:0; background:rgba(4,4,10,0.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.db-modal { position:relative; z-index:1; background:rgba(12,6,24,0.3); border:1px solid rgba(168,85,247,0.15); border-radius:20px; padding:32px 28px; width:320px; box-shadow:0 32px 80px rgba(0,0,0,0.2); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); text-align:center; }
+.db-modal-logo { width:72px; height:72px; border-radius:50%; object-fit:cover; margin:0 auto 16px; display:block; }
+.db-modal-title { font-family:'Space Grotesk','DM Sans',sans-serif; font-size:18px; font-weight:700; color:#fff; margin-bottom:4px; }
+.db-modal-sub { font-size:12px; color:#a0a0b0; margin-bottom:24px; }
+.db-pw-field { width:100%; padding:13px 16px; background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(99,102,241,0.12)); border:1px solid rgba(168,85,247,0.3); border-radius:10px; margin-bottom:10px; cursor:text; position:relative; min-height:46px; display:flex; align-items:center; box-sizing:border-box; text-align:left; transition:border-color 0.2s,box-shadow 0.2s; }
+.db-pw-field:hover { border-color:rgba(168,85,247,0.6); box-shadow:0 0 16px rgba(168,85,247,0.2); }
+.db-pw-dots { color:#fff; font-size:18px; letter-spacing:4px; line-height:1; }
+.db-pw-placeholder { color:#4a4a6a; font-size:14px; font-family:'DM Sans',sans-serif; }
+.db-pw-error { font-size:11px; color:#e17055; margin-bottom:8px; min-height:14px; text-align:left; }
 .dashboard { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
 
 /* ═══ NAV BAR ═══ */
@@ -412,6 +423,42 @@ body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; ba
 <div class="dashboard">
 
 <!-- ═══ NAV BAR ═══ -->
+<div class="db-overlay" id="db-overlay">
+  <div class="db-modal">
+    <img src="LOGO_ROND_JAUNE.png" class="db-modal-logo">
+    <div class="db-modal-title">Sonora Bordeaux 2026</div>
+    <div class="db-modal-sub">Tableau de bord interne</div>
+    <div class="db-pw-field" id="db-pw-field">
+      <input type="password" id="db-pw-input" style="position:absolute;opacity:0;width:1px;height:1px;" onkeydown="if(event.key==='Enter')dbSubmit()" oninput="dbUpdateDots(this.value)">
+      <span class="db-pw-placeholder" id="db-pw-display">Mot de passe</span>
+    </div>
+    <div class="db-pw-error" id="db-pw-error"></div>
+    <button onclick="dbSubmit()" onmouseover="this.style.borderColor='rgba(168,85,247,0.6)';this.style.boxShadow='0 0 16px rgba(168,85,247,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.boxShadow='none'" style="-webkit-appearance:none;appearance:none;width:100%;padding:14px;background:rgba(12,6,24,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:0.5px;transition:border-color 0.2s,box-shadow 0.2s;display:block;-webkit-tap-highlight-color:transparent;">Continuer →</button>
+  </div>
+</div>
+<script>
+(function(){
+  var stored = sessionStorage.getItem('db_auth_bordeaux_2026');
+  if(stored === 'ok') document.getElementById('db-overlay').style.display = 'none';
+  document.getElementById('db-pw-field').addEventListener('click', function(){ document.getElementById('db-pw-input').focus(); });
+})();
+function dbUpdateDots(val){
+  var d = document.getElementById('db-pw-display');
+  d.className = val.length ? 'db-pw-dots' : 'db-pw-placeholder';
+  d.textContent = val.length ? '●'.repeat(val.length) : 'Mot de passe';
+}
+function dbSubmit(){
+  var val = document.getElementById('db-pw-input').value;
+  if(val === 'bordo'){
+    sessionStorage.setItem('db_auth_bordeaux_2026','ok');
+    document.getElementById('db-overlay').style.display = 'none';
+  } else {
+    document.getElementById('db-pw-error').textContent = 'Mot de passe incorrect';
+    document.getElementById('db-pw-input').value = '';
+    dbUpdateDots('');
+  }
+}
+</script>
 <nav class="nav-bar">
 <div class="nav-inner">
     <a class="nav-link active" onclick="scrollToSection('sec-overview')">Vue d'ensemble</a>

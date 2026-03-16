@@ -1,6 +1,6 @@
 # #!/usr/bin/env python3
 “””
-FESTIFLOW — Dashboard Builder v5.0
+FESTIFLOW - Dashboard Builder v5.0
 
 Single-script festival dashboard generator.
 Reads raw DICE + Shotgun exports, merges them, calculates metrics,
@@ -13,21 +13,21 @@ python run.py –event bordeaux_2026    # Force specific event from config
 OUTPUT:
 data/output/dashboard_FINAL.html
 
-ENVIRONMENT VARIABLES (optional — used by Railway/SaaS deployment):
+ENVIRONMENT VARIABLES (optional - used by Railway/SaaS deployment):
 FESTIFLOW_RAW_DIR     Override input directory (temp dir per request)
 FESTIFLOW_OUTPUT_DIR  Override output directory (temp dir per request)
 
 CHANGELOG:
-v5.0 (2026-03-13) — Railway/SaaS compatibility
+v5.0 (2026-03-13) - Railway/SaaS compatibility
 - RAW_DIR and OUTPUT_DIR now respect FESTIFLOW_RAW_DIR /
 FESTIFLOW_OUTPUT_DIR env vars, enabling concurrent Railway requests
 without file collisions
-- parse_datetime_dice() — new function, extracts full datetime
+- parse_datetime_dice() - new function, extracts full datetime
 from DICE ‘Purchase date’ field (was date-only before)
 - DICE ticket dicts now include ‘order_datetime’ field
-- load_ticket_data() — order_datetime preserved through processing
+- load_ticket_data() - order_datetime preserved through processing
 pipeline and correctly parsed back from CSV string format
-- save_merged_csv() — order_datetime added to fieldnames
+- save_merged_csv() - order_datetime added to fieldnames
 - generation_time placeholder set at final file-write moment
 (not mid-pipeline) so ‘Données uploadées’ timestamp is accurate
 - dashboard_template.html header updated:
@@ -35,9 +35,9 @@ pipeline and correctly parsed back from CSV string format
 ‘📤 Données uploadées · {DATA_TIME}’            (file-write time)
 
 ```
-v4.5 (2026-03-13) — timestamp fixes (intermediate, now superseded by v5.0)
-v4.4 (2026-03-12) — dual-counting system (paid vs all tickets)
-v4.3 (2026-03-xx) — initial stable release
+v4.5 (2026-03-13) - timestamp fixes (intermediate, now superseded by v5.0)
+v4.4 (2026-03-12) - dual-counting system (paid vs all tickets)
+v4.3 (2026-03-xx) - initial stable release
 ```
 
 AUTHORS: Leo & Claude
@@ -679,7 +679,7 @@ elif ticket_type == '2-jours':
 elif ticket_type in event_day_names:
     presence[ticket_type] = 1
 elif ticket_type == 'single_day':
-    # Unknown day — count on all days (conservative, better than invisible)
+    # Unknown day - count on all days (conservative, better than invisible)
     for dn in event_day_names:
         presence[dn] = 1
 
@@ -885,7 +885,7 @@ try:
             nom_du_tarif = row.get('NOM DU TARIF', row.get('DEAL TITLE', ''))
             tags = row.get('TAGS', '')
             
-            # Use PRIX HT (net revenue) — what you actually receive
+            # Use PRIX HT (net revenue) - what you actually receive
             prix_ht = row.get('PRIX HT', row.get('PRICE', ''))
             prix_client = row.get('PRIX CLIENT', row.get('CLIENT PRICE', ''))
             
@@ -1245,7 +1245,7 @@ print(f"   DICE: {fmt_currency(revenue_dice)}")
 print(f"   Shotgun: {fmt_currency(revenue_shotgun)}")
 print(f"   Avg ticket price: €{avg_ticket_price:.2f}")
 
-# Velocity (global) — uses velocity_cutoff for complete-day accuracy
+# Velocity (global) - uses velocity_cutoff for complete-day accuracy
 # Filter to complete days only for rate calculations
 vel_cutoff = velocity_cutoff if velocity_cutoff else max(t['order_date'] for t in paid_tickets) if paid_tickets else None
 paid_velocity = [t for t in paid_tickets if t['order_date'] <= vel_cutoff] if vel_cutoff else paid_tickets
@@ -1536,7 +1536,7 @@ return scenarios
 
 # ============================================================================
 
-# HTML GENERATION — Festiflow v3 Template
+# HTML GENERATION - Festiflow v3 Template
 
 # ============================================================================
 
@@ -1606,10 +1606,10 @@ if num_days == 1:
     dates_short = f"{event_date.day} {MONTHS_FR_FULL[event_date.month].lower()} {current_year}"
     dates_compact = f"{event_date.day} {MONTHS_FR_FULL[event_date.month].lower()}"
 elif event_date.month == event_date_last.month:
-    dates_short = f"{event_date.day}–{event_date_last.day} {MONTHS_FR_FULL[event_date.month].lower()} {current_year}"
-    dates_compact = f"{event_date.day}–{event_date_last.day} {MONTHS_FR_FULL[event_date.month].lower()}"
+    dates_short = f"{event_date.day}-{event_date_last.day} {MONTHS_FR_FULL[event_date.month].lower()} {current_year}"
+    dates_compact = f"{event_date.day}-{event_date_last.day} {MONTHS_FR_FULL[event_date.month].lower()}"
 else:
-    dates_short = f"{event_date.day} {MONTHS_FR_FULL[event_date.month].lower()} – {event_date_last.day} {MONTHS_FR_FULL[event_date_last.month].lower()} {current_year}"
+    dates_short = f"{event_date.day} {MONTHS_FR_FULL[event_date.month].lower()} - {event_date_last.day} {MONTHS_FR_FULL[event_date_last.month].lower()} {current_year}"
     dates_compact = dates_short
 
 # ── Days on sale ──
@@ -1620,7 +1620,7 @@ if tickets:
     sale_start = f"{first_sale.day} {MONTHS_FR_ABBR.get(first_sale.month, MONTHS_FR_FULL[first_sale.month][:3].lower())} {first_sale.year}"
 else:
     days_on_sale = 0
-    sale_start = "—"
+    sale_start = "-"
 
 # ── Weeks remaining badge ──
 weeks_rem = max(1, (days_remaining + 6) // 7)
@@ -1648,16 +1648,16 @@ revenue_projection = capped_tickets * avg_price
 revenue_if_soldout = max_tickets_for_capacity * avg_price
 
 # ── Comparison values ──
-compare_year = str(event_config_prev['event_date_first'].year) if event_config_prev else "—"
+compare_year = str(event_config_prev['event_date_first'].year) if event_config_prev else "-"
 compare_event_name = event_config_prev['event_name'] if event_config_prev else ""
 
 if event_config_prev:
     prev_date = event_config_prev['event_date_first']
     prev_date_last = event_config_prev['event_date_last']
     if prev_date.month == prev_date_last.month:
-        compare_dates = f"{prev_date.day}–{prev_date_last.day} {MONTHS_FR_FULL[prev_date.month].lower()} {prev_date.year}"
+        compare_dates = f"{prev_date.day}-{prev_date_last.day} {MONTHS_FR_FULL[prev_date.month].lower()} {prev_date.year}"
     else:
-        compare_dates = f"{prev_date.day} {MONTHS_FR_FULL[prev_date.month].lower()} – {prev_date_last.day} {MONTHS_FR_FULL[prev_date_last.month].lower()} {prev_date.year}"
+        compare_dates = f"{prev_date.day} {MONTHS_FR_FULL[prev_date.month].lower()} - {prev_date_last.day} {MONTHS_FR_FULL[prev_date_last.month].lower()} {prev_date.year}"
     prev_capacity = event_config_prev['total_capacity']
     cap_delta_pct = ((total_capacity - prev_capacity) / prev_capacity * 100) if prev_capacity > 0 else 0
     compare_cap_delta = f"{cap_delta_pct:+.0f}%"
@@ -1784,7 +1784,7 @@ for window_days, label in vel_windows:
             color = 'var(--green)' if delta >= 0 else 'var(--red)'
             vel_rows_parts.append(f'<span class="meta-key">{label}</span><span style="color:#fff;font-weight:500;text-align:right">{int(vel)}/j</span><span style="color:rgba(255,255,255,0.55);text-align:right">{int(prev_vel)}/j</span><span style="color:{color};font-weight:500;text-align:right">{delta:+.0f}%</span>')
         else:
-            vel_rows_parts.append(f'<span class="meta-key">{label}</span><span style="color:#fff;font-weight:500;text-align:right">{int(vel)}/j</span><span style="color:rgba(255,255,255,0.35);text-align:right">—</span><span style="color:var(--text-dim);text-align:right">—</span>')
+            vel_rows_parts.append(f'<span class="meta-key">{label}</span><span style="color:#fff;font-weight:500;text-align:right">{int(vel)}/j</span><span style="color:rgba(255,255,255,0.35);text-align:right">-</span><span style="color:var(--text-dim);text-align:right">-</span>')
     else:
         vel_rows_parts.append(f'<span class="meta-key">{label}</span><span style="color:#fff;font-weight:500;text-align:right">{int(vel)}/j</span>')
 
@@ -1916,7 +1916,7 @@ platforms = set()
 if tickets:
     for t in tickets:
         platforms.add(t['platform'])
-platforms_list = ' · '.join(sorted(platforms)) if platforms else "—"
+platforms_list = ' · '.join(sorted(platforms)) if platforms else "-"
 
 # ── Edition badge ──
 # Count how many events with same brand exist in config history
@@ -1933,9 +1933,9 @@ if tickets:
     datetimes = [t.get('order_datetime') for t in tickets if t.get('order_datetime')]
     if datetimes:
         last_ticket_dt = max(datetimes)
-last_ticket_str = last_ticket_dt.strftime('%d/%m · %H:%M') if last_ticket_dt else '—'
+last_ticket_str = last_ticket_dt.strftime('%d/%m · %H:%M') if last_ticket_dt else '-'
 
-# ── Generation time (placeholder — will be replaced just before file write) ──
+# ── Generation time (placeholder - will be replaced just before file write) ──
 generation_time = '{{GENERATION_TIME_PLACEHOLDER}}'
 
 # ═══ BUILD REPLACEMENTS ═══
@@ -2115,7 +2115,7 @@ for bucket_key in ['regular', 'premium', 'free']:
     is_free = bucket_key == 'free'
     opacity = ' style="opacity:0.6"' if is_free else ''
     vs_class = 'neutral' if is_free else 'pos'
-    vs_text = '—' if is_free else '+0%'  # Placeholder — real comparison TBD
+    vs_text = '-' if is_free else '+0%'  # Placeholder - real comparison TBD
     price_text = 'gratuit' if is_free else f'€{group_avg:.0f}'
     
     html_parts.append(f'''<div class="group-header" onclick="toggleGroup(this)"><div class="group-left"><span class="group-arrow">▶</span><span class="group-name"{opacity}>{group["name"]}</span></div><span class="group-total"{opacity}>{fmt_num(group_total)}</span><span class="group-pct"{opacity}>{group_pct:.1f}%</span><span class="group-price"{opacity}>{price_text}</span></div>''')
@@ -2233,7 +2233,7 @@ for offset in all_offsets:
         prev_date_str = f"{prev_dow} {prev_match.day} {MONTHS_FR_FULL[prev_match.month][:3]}"
     else:
         prev_sales = prev_accum = prev_sg = prev_dice = 0
-        prev_date_str = "—"
+        prev_date_str = "-"
     
     diff = sales - prev_sales
     diff_class = 'pos' if diff >= 0 else 'neg'
@@ -2279,7 +2279,7 @@ for offset in range(max(0, future_days_count)):
         prev_detail = f'<div class="dtl-detail">SG {prev_sg} · DICE {prev_dice}</div>'
     else:
         prev_sales = prev_accum = 0
-        prev_date_str = "—"
+        prev_date_str = "-"
         prev_detail = ''
     
     future_rows.append(f'<div class="dtl-row future"><div class="dtl-left"><div class="dtl-date">{prev_date_str}</div><div class="dtl-sales">{prev_sales}</div>{prev_detail}<div class="dtl-accum">Cumulé {fmt_num(prev_accum)}</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">{j_label}</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-muted)">{date_str}</div><div class="dtl-sales" style="color:var(--text-dim)">À venir</div></div></div>')
@@ -2321,7 +2321,7 @@ if cutoff_cumulative and cutoff_cumulative > cutoff_date:
         prev_today_detail = f'<div class="dtl-detail">SG {prev_today_sg} · DICE {prev_today_dice}</div>'
     else:
         prev_today_sales = prev_today_accum = 0
-        prev_today_str = "—"
+        prev_today_str = "-"
         prev_today_detail = ''
     
     today_diff = today_sales - prev_today_sales
@@ -2386,13 +2386,13 @@ if current_week_num < 1:
     current_week_num = 1
 
 def _week_label(w_num, ref_event_date):
-    """Generate 'S-X · DD–DD Mon' label."""
+    """Generate 'S-X · DD-DD Mon' label."""
     ws_d = ref_event_date - timedelta(days=w_num * 7)
     we_d = ws_d + timedelta(days=6)
     if ws_d.month == we_d.month:
-        return f"S-{w_num} · {ws_d.day:02d}–{we_d.day:02d} {MONTHS_FR_FULL[ws_d.month][:3]}"
+        return f"S-{w_num} · {ws_d.day:02d}-{we_d.day:02d} {MONTHS_FR_FULL[ws_d.month][:3]}"
     else:
-        return f"S-{w_num} · {ws_d.day:02d} {MONTHS_FR_FULL[ws_d.month][:3]}–{we_d.day:02d} {MONTHS_FR_FULL[we_d.month][:3]}"
+        return f"S-{w_num} · {ws_d.day:02d} {MONTHS_FR_FULL[ws_d.month][:3]}-{we_d.day:02d} {MONTHS_FR_FULL[we_d.month][:3]}"
 
 # Show all past + current weeks that have data in EITHER year (full timeline)
 past_week_nums = sorted([w for w in week_sales if w >= current_week_num and (week_sales[w]['current'] > 0 or week_sales[w]['prev'] > 0)], reverse=True)
@@ -2460,13 +2460,13 @@ for w in past_week_nums:
         prev_detail = f'<div class="dtl-detail">SG {ws["prev_sg"]} · DICE {ws["prev_dice"]}</div>' if event_config_prev else ''
         weekly_rows.append(f'<div class="dtl-row today" style="border:1px solid var(--amber);border-radius:8px;margin:2px 0;padding:2px 0"><div class="dtl-left"><div class="dtl-date">{prev_label}</div><div class="dtl-sales">{ws["prev"]}</div>{prev_detail}{prev_pct_html}<div class="dtl-accum">{prev_rev_fmt}</div></div><div class="dtl-center"><div class="dtl-diff {diff_class}">{diff:+d}</div><div class="dtl-pct" style="color:var(--amber)">en cours</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--amber)">{date_label} · en cours</div><div class="dtl-sales" style="color:var(--amber)">{ws["current"]}</div><div class="dtl-detail">SG {ws["cur_sg"]} · DICE {ws["cur_dice"]}</div>{cur_pct_html}<div class="dtl-accum">{cur_rev_fmt}</div></div></div>')
     elif is_prev_only:
-        # Week with only 2025 data — show dash on 2026 side
+        # Week with only 2025 data - show dash on 2026 side
         if event_config_prev:
             prev_label = _week_label(w, prev_event_date)
         else:
             prev_label = f"S-{w}"
         prev_detail = f'<div class="dtl-detail">SG {ws["prev_sg"]} · DICE {ws["prev_dice"]}</div>' if event_config_prev else ''
-        weekly_rows.append(f'<div class="dtl-row" style="opacity:0.5"><div class="dtl-left"><div class="dtl-date">{prev_label}</div><div class="dtl-sales">{ws["prev"]}</div>{prev_detail}{prev_pct_html}<div class="dtl-accum">{prev_rev_fmt}</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">—</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-dim)">{date_label}</div><div class="dtl-sales" style="color:var(--text-dim)">—</div></div></div>')
+        weekly_rows.append(f'<div class="dtl-row" style="opacity:0.5"><div class="dtl-left"><div class="dtl-date">{prev_label}</div><div class="dtl-sales">{ws["prev"]}</div>{prev_detail}{prev_pct_html}<div class="dtl-accum">{prev_rev_fmt}</div></div><div class="dtl-center"><div class="dtl-diff" style="color:var(--text-dim)">-</div></div><div class="dtl-right"><div class="dtl-date" style="color:var(--text-dim)">{date_label}</div><div class="dtl-sales" style="color:var(--text-dim)">-</div></div></div>')
     else:
         # Complete past week with data on both sides
         if event_config_prev:
@@ -2665,7 +2665,7 @@ for i, dn in enumerate(day_names):
         ha = hist_accel[dn]
         prev_year = event_config_prev['event_date_first'].year if event_config_prev else ''
         
-        # SCENARIO A: Pure 2025 replay — exact 2025 remaining-day sales grafted onto current
+        # SCENARIO A: Pure 2025 replay - exact 2025 remaining-day sales grafted onto current
         prev_event = event_config_prev['event_date_first']
         prev_paid_tickets = [t for t in tickets_prev_full if t.get('is_paid', 1) == 1]
         replay_total = pres
@@ -2682,7 +2682,7 @@ for i, dn in enumerate(day_names):
         pct_replay = (replay_total / cap * 100) if cap > 0 else 0
         replay_text, replay_color = _sellout_text_fr(replay_sellout, cutoff_date, cap, replay_total, pct_replay)
         
-        # SCENARIO B: 2025 × coef. 2026 — use 14d velocity for more stable coefficient
+        # SCENARIO B: 2025 × coef. 2026 - use 14d velocity for more stable coefficient
         proj_final, sellout_final = _simulate_historical(pres, vel_14d, days_remaining, cap, ha['ratios'])
         proj_final = max(proj_final, pres)  # projected can never be below current
         
@@ -2780,11 +2780,11 @@ for i, dn in enumerate(day_names):
     prev_year_label = event_config_prev["event_date_first"].year if event_config_prev else ""
     
     legend_ref = f'<div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(239,68,68,0.5)"></div>{prev_year_label}</div>' if has_reference else ''
-    disclaimer = '' if has_reference else f'<div style="margin-top:8px;padding:10px 14px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.5)">⚠️ Modèle en construction — projection basée sur un profil standard festival. Le modèle définitif utilisera les données historiques de l\'ensemble des événements Madame Loyal.</div>'
+    disclaimer = '' if has_reference else f'<div style="margin-top:8px;padding:10px 14px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.5)">⚠️ Modèle en construction - projection basée sur un profil standard festival. Le modèle définitif utilisera les données historiques de l\'ensemble des événements Madame Loyal.</div>'
     
     if has_reference:
         # Two canvases: one per scenario, toggled by switchScenario
-        panels.append(f'''<div id="proj-day{i}"{hidden}><div class="chart-subtitle">{display} — Courbe cumulative (% capacité)</div>\
+        panels.append(f'''<div id="proj-day{i}"{hidden}><div class="chart-subtitle">{display} - Courbe cumulative (% capacité)</div>\
 ```
 
 <div class="q-chart-wrap" id="day{i}-chart-a"><div class="chart-canvas-wrap"><canvas id="chartDay{i}S1"></canvas></div>\
@@ -2793,7 +2793,7 @@ for i, dn in enumerate(day_names):
 <div class="chart-legend-custom"><div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Ventes {event_date.year}</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:{scenario_b_color}"></div>{scenario_b_label}</div>{legend_ref}<div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(255,255,255,0.35)"></div>100% capacité</div></div></div>\
 </div>''')
         else:
-            panels.append(f'''<div id="proj-day{i}"{hidden}><div class="chart-subtitle">{display} — Courbe cumulative (% capacité)</div><div class="chart-canvas-wrap"><canvas id="chartDay{i}S1"></canvas></div><div class="chart-legend-custom"><div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Ventes {event_date.year}</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:{scenario_color}"></div>{scenario_label}</div>{legend_ref}<div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(255,255,255,0.35)"></div>100% capacité</div></div>{disclaimer}</div>''')
+            panels.append(f'''<div id="proj-day{i}"{hidden}><div class="chart-subtitle">{display} - Courbe cumulative (% capacité)</div><div class="chart-canvas-wrap"><canvas id="chartDay{i}S1"></canvas></div><div class="chart-legend-custom"><div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Ventes {event_date.year}</div><div class="legend-item"><div class="legend-swatch dashed" style="border-color:{scenario_color}"></div>{scenario_label}</div>{legend_ref}<div class="legend-item"><div class="legend-swatch dashed" style="border-color:rgba(255,255,255,0.35)"></div>100% capacité</div></div>{disclaimer}</div>''')
 
 ```
     # Store projection data for chart builder
@@ -2808,15 +2808,15 @@ has_any_reference = bool(tickets_prev_full and event_config_prev)
 prev_year_str = str(event_config_prev['event_date_first'].year) if event_config_prev else 'N/A'
 
 if has_any_reference:
-    proj_methodology = f'<strong>Méthodologie — Deux scénarios de projection</strong><br><br>\
+    proj_methodology = f'<strong>Méthodologie - Deux scénarios de projection</strong><br><br>\
 ```
 
 <strong>1. Trajectoire {prev_year_str}</strong><br>  
-Réplique exacte des ventes {prev_year_str} sur les J-{days_remaining_display} restants. Les ventes journalières observées en {prev_year_str} à la même distance de l'événement sont ajoutées au cumul actuel {event_date.year}. Aucun ajustement — projection conservatrice basée sur l'historique brut.<br><br>  
+Réplique exacte des ventes {prev_year_str} sur les J-{days_remaining_display} restants. Les ventes journalières observées en {prev_year_str} à la même distance de l'événement sont ajoutées au cumul actuel {event_date.year}. Aucun ajustement - projection conservatrice basée sur l'historique brut.<br><br>  
 <strong>2. {prev_year_str} × coef. {event_date.year}</strong><br>  
 La courbe de ventes {prev_year_str} est multipliée par le ratio de vélocité actuelle ({event_date.year} vs {prev_year_str} à J-{days_remaining_display}). Ce coefficient reflète la dynamique de vente actuelle : un coef. > 1 signifie que {event_date.year} vend plus vite que {prev_year_str} au même stade.<br><br>’ + ‘<br>’.join(methodology_parts) + ‘<br><br><strong>Paramètres :</strong> billets payants uniquement · pass multi-jours = 1 entrée/jour · coefficient basé sur la vélocité 14j · projections plafonnées à la capacité’
 else:
-proj_methodology = f’<strong>Méthodologie — Profil standard festival</strong><br><br>⚠️ <em>Modèle en construction</em> — cette projection utilise un profil d'accélération standard basé sur les tendances typiques de festivals (accélération progressive puis forte hausse en S-5 à S-0). Le modèle définitif intégrera les données historiques de l'ensemble des événements Madame Loyal pour une projection plus précise.<br><br>La vélocité actuelle (7 derniers jours) est projetée avec les multiplicateurs hebdomadaires du profil standard.<br><br>’ + ‘<br>’.join(methodology_parts) + ‘<br><br><strong>Paramètres :</strong> billets payants uniquement · pass multi-jours = 1 entrée/jour · projections plafonnées à la capacité’
+proj_methodology = f’<strong>Méthodologie - Profil standard festival</strong><br><br>⚠️ <em>Modèle en construction</em> - cette projection utilise un profil d'accélération standard basé sur les tendances typiques de festivals (accélération progressive puis forte hausse en S-5 à S-0). Le modèle définitif intégrera les données historiques de l'ensemble des événements Madame Loyal pour une projection plus précise.<br><br>La vélocité actuelle (7 derniers jours) est projetée avec les multiplicateurs hebdomadaires du profil standard.<br><br>’ + ‘<br>’.join(methodology_parts) + ‘<br><br><strong>Paramètres :</strong> billets payants uniquement · pass multi-jours = 1 entrée/jour · projections plafonnées à la capacité’
 
 ```
 proj_day_ids = ','.join(f"'day{i}'" for i in range(num_days))
@@ -3351,7 +3351,7 @@ for i, dn in enumerate(day_names):
         
         ds_prev = f"{{label:'{prev_year_label}',data:{p_js},borderColor:'rgba(239,68,68,.5)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:.3,fill:false}}"
         
-        # Chart S1: Replay (pure 2025) — yellow dashed
+        # Chart S1: Replay (pure 2025) - yellow dashed
         ds_replay = f"{{label:'{proj_label_a}',data:{replay_js},borderColor:'rgba(251,191,36,.8)',borderWidth:2,borderDash:[8,5],pointRadius:0,tension:.3,fill:false}}"
         datasets_s1 = f"[{ds_common},{ds_replay},{ds_prev}]"
         chart_s1 = f"new Chart(document.getElementById('chartDay{i}S1'),{{type:'line',data:{{labels:L,datasets:{datasets_s1}}},options:{co}}})"
@@ -3362,7 +3362,7 @@ for i, dn in enumerate(day_names):
         chart_s2 = f"new Chart(document.getElementById('chartDay{i}S2'),{{type:'line',data:{{labels:L,datasets:{datasets_s2}}},options:{co}}})"
         
         if i == 0:
-            js_parts.append(f"// Day 0 — built immediately\n{chart_s1};")
+            js_parts.append(f"// Day 0 - built immediately\n{chart_s1};")
             js_parts.append(f"window._projBuilders['day{i}S2'] = function(){{{chart_s2}}};")
         else:
             js_parts.append(f"window._projBuilders['day{i}S1'] = function(){{{chart_s1}}};")
@@ -3373,7 +3373,7 @@ for i, dn in enumerate(day_names):
         chart_code = f"new Chart(document.getElementById('chartDay{i}S1'),{{type:'line',data:{{labels:L,datasets:{datasets}}},options:{co}}})"
         
         if i == 0:
-            js_parts.append(f"// Day 0 — built immediately\n{chart_code};")
+            js_parts.append(f"// Day 0 - built immediately\n{chart_code};")
         else:
             js_parts.append(f"window._projBuilders['day{i}S1'] = function(){{{chart_code}}};")
 
@@ -3420,7 +3420,7 @@ return f"""window._projBuilders['hebdo'] = function(){{new Chart(document.getEle
 # ============================================================================
 
 def main():
-print_header(“FESTIFLOW — Dashboard Builder v4.3”)
+print_header(“FESTIFLOW - Dashboard Builder v4.3”)
 
 ```
 parser = argparse.ArgumentParser(description="Generate festival dashboards")
@@ -3561,7 +3561,7 @@ html = build_dashboard_html_v3(
     cutoff_cumulative=cutoff_cumulative
 )
 
-# Save — set generation time as late as possible (right before write)
+# Save - set generation time as late as possible (right before write)
 html = html.replace('{{GENERATION_TIME_PLACEHOLDER}}', datetime.now(ZoneInfo('Europe/Paris')).strftime('%H:%M'))
 output_path = OUTPUT_DIR / "dashboard_FINAL.html"
 with open(output_path, 'w', encoding='utf-8') as f:

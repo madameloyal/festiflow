@@ -510,7 +510,7 @@ function dbSubmit(){
     
     
 </div>
-<div class="header-ts">🎟 Dernier billet vendu · 17/03 · 23:54 &nbsp;·&nbsp; 📤 Données uploadées · 00:14 <span style="margin-left:12px;font-family:'Space Grotesk','DM Sans',sans-serif;font-weight:600;letter-spacing:1.5px;color:var(--text-dim)">Festiflow: Dashboard</span></div>
+<div class="header-ts">🎟 Dernier billet vendu · 17/03 · 23:54 &nbsp;·&nbsp; 📤 Données uploadées · 00:26 <span style="margin-left:12px;font-family:'Space Grotesk','DM Sans',sans-serif;font-weight:600;letter-spacing:1.5px;color:var(--text-dim)">Festiflow: Dashboard</span></div>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- KPI GRID (4 cards: Revenus, Jours Restants,             -->
@@ -577,7 +577,7 @@ function dbSubmit(){
 <!-- ─── CARD: Présence Totale ─── -->
 <div class="card">
     <div class="card-header"><div class="card-label">Présence Totale<span class="info-tip">i<span class="info-bubble">Nombre d'entrées estimées. Les pass multi-jours sont comptés une fois par jour (ex. un pass 2 jours = 2 entrées). Les invitations et jeux concours sont inclus.</span></span></div><div class="yoy-badge positive">+29.9% vs 2025 à J-86</div></div>
-    {{#HAS_WARMUP}}<div class="warmup-toggle" onclick="toggleWarmup()" id="warmup-toggle"><div class="warmup-toggle-track" id="warmup-track"><div class="warmup-toggle-knob"></div></div><span class="warmup-toggle-label" id="warmup-label">Inclure {{WARMUP_DAY_NAME}}</span></div>{{/HAS_WARMUP}}
+    <div class="warmup-toggle" onclick="toggleWarmup()" id="warmup-toggle"><div class="warmup-toggle-track" id="warmup-track"><div class="warmup-toggle-knob"></div></div><span class="warmup-toggle-label" id="warmup-label">Inclure Jeudi</span></div>
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px"><div class="hero" style="font-size:2.4em" id="presence-total-display">17,019</div><span style="font-size:0.82em;color:var(--text-dim)" id="capacity-total-display">/ 44 500</span></div>
     <!-- Stacked bar: N segments for N days -->
     <div class="stacked-bar"><div class="stacked-seg" style="width:1.6%;background:var(--day-0)"></div><div class="stacked-seg" style="width:14.6%;background:var(--day-1)"></div><div class="stacked-seg" style="width:22.0%;background:var(--day-2)"></div></div>
@@ -1046,11 +1046,11 @@ window._projBuilders['day2S2'] = function(){new Chart(document.getElementById('c
 
 // ─── Warmup toggle ───
 var _warmupOn = false;
-var _presenceFull = {{PRESENCE_TOTAL_RAW}};
-var _capacityFull = {{CAPACITY_TOTAL_RAW}};
-var _presenceNoWarmup = {{PRESENCE_NO_WARMUP}};
-var _capacityNoWarmup = {{CAPACITY_NO_WARMUP}};
-var _hasWarmup = {{HAS_WARMUP}};
+var _presenceFull = 17019;
+var _capacityFull = 44500;
+var _presenceNoWarmup = 16298;
+var _capacityNoWarmup = 36000;
+var _hasWarmup = True;
 
 function fmt(n){ return n.toLocaleString('fr-FR'); }
 

@@ -1592,6 +1592,21 @@ current_year = str(event_date.year)
 
 has_comparison = comparison is not None and metrics_prev is not None
 
+# ── Warmup day exclusion (Jeudi = warmup if event has 3+ days and first day is Jeudi) ──
+day_names_list = [d['day_name'].lower() for d in event_config['days']]
+warmup_day = 'jeudi' if len(day_names_list) >= 3 and day_names_list[0] == 'jeudi' else None
+day_presence_current = metrics.get('day_presence', {})
+if warmup_day and warmup_day in day_presence_current:
+    warmup_presence = int(day_presence_current[warmup_day])
+    warmup_capacity = next((d['day_capacity'] for d in event_config['days'] if d['day_name'].lower() == warmup_day), 0)
+else:
+    warmup_day = None
+    warmup_presence = 0
+    warmup_capacity = 0
+presence_no_warmup = int(metrics['total_presence']) - warmup_presence
+capacity_no_warmup = int(total_capacity) - warmup_capacity
+pct_no_warmup = round(presence_no_warmup / capacity_no_warmup * 100, 1) if capacity_no_warmup > 0 else 0
+
 # ── Conditional blocks ──
 html = resolve_template_blocks(html, {
     'HAS_COMPARISON': has_comparison,
@@ -1599,6 +1614,7 @@ html = resolve_template_blocks(html, {
     'SHOW_PAR_JOUR': num_days > 1,
     'IS_TERMINE': days_remaining_display <= 0,
     'IS_LIVE': days_remaining_display > 0,
+    'HAS_WARMUP': warmup_day is not None,
 })
 
 # ── Date formatting ──
@@ -1629,6 +1645,8 @@ weeks_rem = max(1, (days_remaining + 6) // 7)
 total_revenue = metrics['total_revenue']
 avg_price = metrics['avg_ticket_price']
 sell_through_pct = (metrics['total_presence'] / total_capacity * 100) if total_capacity > 0 else 0
+
+
 ring_offset = int(264 - (264 * sell_through_pct / 100))
 
 # Revenue formatting
@@ -1988,6 +2006,13 @@ replacements = {
     # Presence
     'PRESENCE_TOTAL': fmt_num(metrics['total_presence']),
     'PRESENCE_PCT_TOTAL': f'{sell_through_pct:.1f}',
+    'PRESENCE_TOTAL_RAW': str(int(metrics['total_presence'])),
+    'CAPACITY_TOTAL_RAW': str(int(total_capacity)),
+    'PRESENCE_NO_WARMUP': str(presence_no_warmup),
+    'CAPACITY_NO_WARMUP': str(capacity_no_warmup),
+    'PCT_NO_WARMUP': str(pct_no_warmup),
+    'HAS_WARMUP': warmup_day is not None,
+    'WARMUP_DAY_NAME': warmup_day.capitalize() if warmup_day else '',
     'PRESENCE_YOY': presence_yoy,
     'PRESENCE_YOY_CLASS': presence_yoy_class if has_comparison else '',
     'TICKETS_PAID': fmt_num(tickets_paid),

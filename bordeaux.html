@@ -510,7 +510,7 @@ function dbSubmit(){
     
     
 </div>
-<div class="header-ts">🎟 Dernier billet vendu · 17/03 · 23:54 &nbsp;·&nbsp; 📤 Données uploadées · 00:26 <span style="margin-left:12px;font-family:'Space Grotesk','DM Sans',sans-serif;font-weight:600;letter-spacing:1.5px;color:var(--text-dim)">Festiflow: Dashboard</span></div>
+<div class="header-ts">🎟 Dernier billet vendu · 17/03 · 23:54 &nbsp;·&nbsp; 📤 Données uploadées · 00:37 <span style="margin-left:12px;font-family:'Space Grotesk','DM Sans',sans-serif;font-weight:600;letter-spacing:1.5px;color:var(--text-dim)">Festiflow: Dashboard</span></div>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- KPI GRID (4 cards: Revenus, Jours Restants,             -->
@@ -580,8 +580,10 @@ function dbSubmit(){
     <div class="warmup-toggle" onclick="toggleWarmup()" id="warmup-toggle"><div class="warmup-toggle-track" id="warmup-track"><div class="warmup-toggle-knob"></div></div><span class="warmup-toggle-label" id="warmup-label">Inclure Jeudi</span></div>
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px"><div class="hero" style="font-size:2.4em" id="presence-total-display">17,019</div><span style="font-size:0.82em;color:var(--text-dim)" id="capacity-total-display">/ 44 500</span></div>
     <!-- Stacked bar: N segments for N days -->
-    <div class="stacked-bar"><div class="stacked-seg" style="width:1.6%;background:var(--day-0)"></div><div class="stacked-seg" style="width:14.6%;background:var(--day-1)"></div><div class="stacked-seg" style="width:22.0%;background:var(--day-2)"></div></div>
-    <div class="pct-row"><span class="pct-total">38.2%</span><div class="pct-legend"><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-0)"></div>Jeu 8%</div><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-1)"></div>Ven 36%</div><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-2)"></div>Sam 54%</div></div></div>
+    <div class="stacked-bar" id="stacked-bar-full" style="display:none"><div class="stacked-seg" style="width:1.6%;background:var(--day-0)"></div><div class="stacked-seg" style="width:14.6%;background:var(--day-1)"></div><div class="stacked-seg" style="width:22.0%;background:var(--day-2)"></div></div>
+    <div class="stacked-bar" id="stacked-bar-nw"><div class="stacked-seg" style="width:18.0%;background:var(--day-1)"></div><div class="stacked-seg" style="width:27.2%;background:var(--day-2)"></div></div>
+    <div class="pct-row" id="pct-row-full" style="display:none"><span class="pct-total">38.2%</span><div class="pct-legend"><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-0)"></div>Jeu 8%</div><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-1)"></div>Ven 36%</div><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-2)"></div>Sam 54%</div></div></div>
+    <div class="pct-row" id="pct-row-nw"><span class="pct-total">45.3%</span><div class="pct-legend"><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-1)"></div>Ven 36%</div><div class="pct-legend-item"><div class="pct-dot" style="background:var(--day-2)"></div>Sam 54%</div></div></div>
     <div class="divider"></div>
     <div class="meta-row"><span class="meta-key">Billets payants</span><span class="meta-val">11,706</span></div>
     <div style="height:6px"></div>
@@ -1050,7 +1052,7 @@ var _presenceFull = 17019;
 var _capacityFull = 44500;
 var _presenceNoWarmup = 16298;
 var _capacityNoWarmup = 36000;
-var _hasWarmup = True;
+var _hasWarmup = true;
 
 function fmt(n){ return n.toLocaleString('fr-FR'); }
 
@@ -1060,25 +1062,38 @@ function toggleWarmup(){
   var track = document.getElementById('warmup-track');
   var display = document.getElementById('presence-total-display');
   var cap = document.getElementById('capacity-total-display');
+  var barFull = document.getElementById('stacked-bar-full');
+  var barNw = document.getElementById('stacked-bar-nw');
+  var pctFull = document.getElementById('pct-row-full');
+  var pctNw = document.getElementById('pct-row-nw');
   if(!track || !display) return;
   if(_warmupOn){
     track.classList.add('on');
     display.textContent = fmt(_presenceFull);
     if(cap) cap.textContent = '/ ' + fmt(_capacityFull);
+    if(barFull) barFull.style.display = 'flex';
+    if(barNw) barNw.style.display = 'none';
+    if(pctFull) pctFull.style.display = 'flex';
+    if(pctNw) pctNw.style.display = 'none';
   } else {
     track.classList.remove('on');
     display.textContent = fmt(_presenceNoWarmup);
     if(cap) cap.textContent = '/ ' + fmt(_capacityNoWarmup);
+    if(barFull) barFull.style.display = 'none';
+    if(barNw) barNw.style.display = 'flex';
+    if(pctFull) pctFull.style.display = 'none';
+    if(pctNw) pctNw.style.display = 'flex';
   }
 }
 
 // Init: default off (no warmup)
-if(_hasWarmup){
+document.addEventListener('DOMContentLoaded', function(){
+  if(!_hasWarmup) return;
   var d = document.getElementById('presence-total-display');
   var c = document.getElementById('capacity-total-display');
   if(d) d.textContent = fmt(_presenceNoWarmup);
   if(c) c.textContent = '/ ' + fmt(_capacityNoWarmup);
-}
+});
 </script>
 </body>
 </html>

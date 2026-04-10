@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function submitPassword() {
   const val = document.getElementById('pw-input').value.trim();
   if (!val) return;
-  if (val !== 'newcsv') {
+  if (val !== 'festipass') {
     document.getElementById('pw-error').textContent = 'Mot de passe incorrect';
     document.getElementById('pw-input').value = '';
     updatePwDots('');
